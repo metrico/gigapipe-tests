@@ -203,6 +203,14 @@ const extraHeaders = (() => {
   if (process.env.DSN) {
     res['X-CH-DSN'] = process.env.DSN
   }
+  // Some clients (InfluxDB, OTLP exporters) don't propagate URL-userinfo as HTTP Basic auth, so
+  // credentials are also accepted via headers.
+  if (process.env.CLOKI_API_KEY) {
+    res['X-API-Key'] = process.env.CLOKI_API_KEY
+  }
+  if (process.env.CLOKI_API_SECRET) {
+    res['X-API-Secret'] = process.env.CLOKI_API_SECRET
+  }
   return res
 })()
 
