@@ -8,6 +8,15 @@ message ExportLogsServiceRequest {
   repeated ResourceLogs resource_logs = 1;
 }
 
+message ExportLogsServiceResponse {
+  ExportLogsPartialSuccess partial_success = 1;
+}
+
+message ExportLogsPartialSuccess {
+  int64 rejected_log_records = 1;
+  string error_message = 2;
+}
+
 message ResourceLogs {
   Resource resource = 1;
   repeated ScopeLogs scope_logs = 2;
