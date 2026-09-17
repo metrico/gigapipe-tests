@@ -303,3 +303,32 @@ _it(`prometheus: accelerated range-vector functions return series when step > ra
     }
     expect(got).toEqual(Object.fromEntries(fns.map(fn => [fn, 'ok'])))
 }, ['should send prometheus.remote.write'])
+
+// count_over_time is the one function here whose value exposes the width of the
+// window rather than just its position. The harness writes a sample every 15s,
+// so a [300s] range holds exactly 20 of them however the query is stepped --
+// where rate over a perfectly linear counter reads 1/15 through any window at
+// all, and so cannot tell a correct window from a shifted or oversized one.
+//
+// The buckets the frame reaches have to tile (t-range, t]. When a bucket was
+// allowed to grow with the query step, one of them covered more than the range
+// at a coarse step and the count came back as that bucket's whole population.
+_it(`prometheus: count_over_time counts the range, not the step`, async () => {
+    const query = `count_over_time(test_counter{test_id="${testID}_RWR"}[300s])`
+    const perStep = {}
+    for (const step of [60, 150, 300, 600]) {
+        const result = await promQueryRange(query, step)
+        expect(result.length).toBeTruthy()
+        const counts = new Set()
+        for (const ts of result) {
+            expect(ts.values.length).toBeTruthy()
+            ts.values.forEach(([, v]) => counts.add(parseFloat(v)))
+        }
+        // Points near the start of the query have a partially covered window and
+        // legitimately count fewer; none may ever count MORE than the range holds.
+        perStep[step] = [...counts].some(c => c > 20)
+            ? `over-counted: ${JSON.stringify([...counts].sort((a, b) => a - b))}`
+            : 'ok'
+    }
+    expect(perStep).toEqual({60: 'ok', 150: 'ok', 300: 'ok', 600: 'ok'})
+}, ['should send prometheus.remote.write'])
