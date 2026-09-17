@@ -145,3 +145,30 @@ _itShouldReadPromMatrix(`prometheus exp: should sum + rate`,
         query:`sum by (test_id) (rate(test_counter{test_id="${testID}_RWR"}[1m]))`,
         headers: {'X-Experimental': '1'}
 })
+
+// Regression guard for the query_range `end` rounding. The reader snaps the
+// query window to the metrics_15s table's 15s grid, and snapping `end` forward
+// used to emit one data point strictly after the timestamp the caller asked
+// for -- real Prometheus never returns a point past `end`.
+//
+// Every other prom matrix test above inherits `start`/`end` from common.js,
+// which floors both to whole minutes; those are already multiples of 15, so
+// rounding in either direction is a no-op there and the bug is invisible.
+// This test deliberately picks an `end` that is off the 15s grid.
+_it(`prometheus: query_range must not return points after the requested end`, async () => {
+    const unalignedEnd = Math.floor(end / 1000) - 7 // end is minute-aligned, so this lands 8s past a 15s boundary
+    expect(unalignedEnd % 15).not.toEqual(0)
+    let fd = new URLSearchParams()
+    fd.append('query', `test_counter{test_id="${testID}_RWR"}`)
+    fd.append('start', `${Math.floor(start / 1000)}`)
+    fd.append('end', `${unalignedEnd}`)
+    fd.append('step', '15')
+    const resp = await axiosGet(`http://${clokiExtUrl}/api/v1/query_range?${fd}`)
+    expect(resp.status).toEqual(200)
+    // without this the timestamp check below passes vacuously on an empty result
+    expect(resp.data.data.result.length).toBeTruthy()
+    resp.data.data.result.forEach(ts => {
+        expect(ts.values.length).toBeTruthy()
+        ts.values.forEach(v => expect(v[0]).toBeLessThanOrEqual(unalignedEnd))
+    })
+}, ['should send prometheus.remote.write'])
