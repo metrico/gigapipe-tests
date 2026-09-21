@@ -151,6 +151,49 @@ _it('should hammer aggregation operator', async () => {
     }
 }, ['push logs http'])
 
+// An aggregation with no `by`/`without` clause projects the label set down to
+// empty, so it returns a single series whose `metric` is `{}`. That is the
+// defined LogQL/PromQL meaning of `sum(...)` and the shape Grafana Logs
+// Drilldown emits, not a stream that lost its labels.
+//
+// The whole suite otherwise scopes its aggregations with `by (test_id)`, so no
+// test exercised the collapsed-label shape and #961's drop of label-less
+// fingerprints silently emptied it (#997): HTTP 200 with `result: []`.
+//
+// Asserted against the grouped form of the same query rather than a snapshot:
+// whatever the numbers turn out to be, collapsing the one label the selector
+// already pins must not change them.
+const _itShouldCollapseLabels = (fn, range) => {
+    _it(`grouping-less aggregation: ${fn} [${range}]`, async () => {
+        const grouped = await runRequest(
+            `sum by (test_id) (${fn}({test_id="${testID}"}[${range}]))`)
+        const collapsed = await runRequest(
+            `sum(${fn}({test_id="${testID}"}[${range}]))`)
+
+        const groupedSeries = grouped.data.data.result
+        const collapsedSeries = collapsed.data.data.result
+
+        // Control: the grouped form must have data, otherwise the comparison
+        // below would pass on two empty results.
+        expect(groupedSeries.length).toEqual(1)
+        expect(groupedSeries[0].values.length).toBeTruthy()
+
+        // The regression: this came back as [] while the control had data.
+        expect(collapsedSeries.length).toEqual(1)
+
+        // Every label was aggregated away, so the series carries none.
+        expect(collapsedSeries[0].metric).toEqual({})
+
+        // Same data, same aggregate, at every step of the window.
+        expect(collapsedSeries[0].values).toEqual(groupedSeries[0].values)
+    }, ['push logs http'])
+}
+
+// `[1s]` plans over samples_v3; `[1m]` takes the metrics_15s shortcut. Both
+// build the synthetic empty-label fingerprint, so both paths need covering.
+_itShouldCollapseLabels('count_over_time', '1s')
+_itShouldCollapseLabels('rate', '1m')
+
 _itShouldMatrixReq({
     name: 'aggregation empty',
     req: `rate({test_id="${testID}", freq="2"} |~ "2[0-9]$" [1s])`,
