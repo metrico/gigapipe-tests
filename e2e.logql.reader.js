@@ -151,6 +151,43 @@ _it('should hammer aggregation operator', async () => {
     }
 }, ['push logs http'])
 
+// Collapsing the one label the selector already pins must not change the
+// values, and leaves a single series with the empty label set `{}`.
+const _itShouldCollapseLabels = (agg, fn, range) => {
+    _it(`collapsed aggregation: ${agg} ${fn} [${range}]`, async () => {
+        const [grouped, collapsed] = await Promise.all([
+            runRequest(`sum by (test_id) (${fn}({test_id="${testID}"}[${range}]))`),
+            runRequest(`${agg} (${fn}({test_id="${testID}"}[${range}]))`)
+        ])
+
+        const groupedSeries = grouped.data.data.result
+        const collapsedSeries = collapsed.data.data.result
+
+        // Control: the grouped form must have data, otherwise the comparison
+        // below would pass on two empty results.
+        expect(groupedSeries.length).toEqual(1)
+        expect(groupedSeries[0].values.length).toBeTruthy()
+
+        expect(collapsedSeries.length).toEqual(1)
+        expect(collapsedSeries[0].metric).toEqual({})
+
+        // Same steps exactly; values within float noise, since the two plans
+        // need not add the streams up in the same order.
+        const values = collapsedSeries[0].values
+        expect(values.map(v => v[0])).toEqual(groupedSeries[0].values.map(v => v[0]))
+        values.forEach(([, v], i) =>
+            expect(parseFloat(v)).toBeCloseTo(parseFloat(groupedSeries[0].values[i][1]), 5))
+    }, ['push logs http'])
+}
+
+// `[1s]` plans over samples_v3; `[1m]` takes the metrics_15s shortcut.
+// `without` naming every stream label is the other spelling of the empty set;
+// the writer adds `service_name="unknown"` to streams that carry none.
+for (const agg of ['sum', 'sum without (test_id, freq, service_name)']) {
+    _itShouldCollapseLabels(agg, 'count_over_time', '1s')
+    _itShouldCollapseLabels(agg, 'rate', '1m')
+}
+
 _itShouldMatrixReq({
     name: 'aggregation empty',
     req: `rate({test_id="${testID}", freq="2"} |~ "2[0-9]$" [1s])`,
