@@ -9,7 +9,11 @@ const client = require('./grid/client')
 
 // Case ids that run.
 const ENABLED = new Set([
-  'irate_15m', 'deriv_15m_y', 'i_irate_15m', 'i_deriv_15m_y'
+  'irate_15m', 'deriv_15m_y', 'i_irate_15m', 'i_deriv_15m_y',
+  'unaligned_bare_x', 'unaligned_bare_y', 'unaligned_avg_ot_1h_y', 'unaligned_max_ot_5m_y',
+  'unaligned_rate_15m', 'unaligned_absent_ot_5m_x', 'unaligned_offset_7m_y', 'unaligned_sum_by_y',
+  'i_unaligned_bare_x', 'i_unaligned_bare_y', 'i_unaligned_max_ot_5m_y', 'i_unaligned_rate_15m',
+  'i_unaligned_offset_7m_y'
 ])
 
 const TEST_ID = `${testID}_grid_prom`

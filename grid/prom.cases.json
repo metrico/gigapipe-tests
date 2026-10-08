@@ -386,7 +386,7 @@
      60.25
     ],
     "420": [
-     0
+     7
     ],
     "3600": [
      7,
@@ -403,7 +403,7 @@
    ],
    "offsets": {
     "420": [
-     0
+     7
     ],
     "3600": [
      7,
@@ -425,7 +425,7 @@
      60.25
     ],
     "420": [
-     0
+     7
     ],
     "3600": [
      7,
@@ -456,6 +456,199 @@
      1234.567
     ]
    }
+  },
+  {
+   "id": "unaligned_bare_x",
+   "query": "{gx}",
+   "steps": [
+    300,
+    420,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "steps": [
+    420,
+    3600
+   ],
+   "offsets": {
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_absent_ot_5m_x",
+   "query": "absent_over_time({gx}[5m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_offset_7m_y",
+   "query": "{gy} offset 7m",
+   "steps": [
+    300,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "unaligned_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    300,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "i_unaligned_bare_x",
+   "query": "{gx}",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_unaligned_max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_unaligned_offset_7m_y",
+   "query": "{gy} offset 7m",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "step420_bare_y",
+   "query": "{gy}",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
   },
   {
    "id": "grafana_tz_bare_y",
