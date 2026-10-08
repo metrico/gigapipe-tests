@@ -30,4 +30,4 @@ for (const run of logqlRuns(D0, TEST_ID).filter(r => ENABLED.has(r.id))) {
   }, [SEEDED])
 }
 
-it.todo('grid logql: bytes_over_time/bytes_rate values')
+it.todo('grid logql: bytes_over_time/bytes_rate values (SQL-path bytes_over_time divides by R)')
