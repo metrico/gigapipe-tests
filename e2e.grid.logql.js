@@ -19,7 +19,10 @@ const ENABLED = new Set([
   'bytes/natural', 'bytes_rate/natural',
   'sum_unwrap_by_l/natural', 'sum_unwrap_by_l/rawsql', 'max_unwrap_by_l/natural', 'max_unwrap_by_l/rawsql',
   'quantile_by_l/natural', 'quantile_by_l/rawsql', 'max_unwrap_by_l_offset_7m/natural',
-  'max_unwrap_by_l_offset_7m/rawsql', 'max_unwrap_by_l_offset_7m/internal'
+  'max_unwrap_by_l_offset_7m/rawsql', 'max_unwrap_by_l_offset_7m/internal',
+  'count/natural', 'count_by_l/natural', 'rate/natural', 'rate_by_l/natural', 'count_offset_7m/natural',
+  ...['count_edge_90s', 'rate_by_l_edge_90s', 'count_off_lattice', 'count_100s', 'count_offset_7s']
+    .flatMap(id => [`${id}/natural`, `${id}/rawsql`, `${id}/internal`])
 ])
 
 const TEST_ID = `${testID}_grid_logql`

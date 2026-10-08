@@ -63,7 +63,8 @@ const promRuns = (d0, testId) => {
 
 /**
  * logqlRuns returns one run per case, path, range and shape. A path template
- * places the case's parser stages ahead of its line_format breakpoint.
+ * places the case's parser stages ahead of its line_format breakpoint. A case
+ * may replace a range's shapes and the instant offsets.
  * Each run is {name, id, path, r, query, instant, step, offset, start, end, time, check}.
  * @param d0 {number}
  * @param testId {string}
@@ -84,7 +85,8 @@ const logqlRuns = (d0, testId) => {
             .split('{stages}').join(c.stages || ''))
           .split('{r}').join(r)
         const base = { id: c.id, path, r, query, check: c.check || 'values' }
-        for (const [step, offset] of logqlCases.ranges[r].shapes) {
+        const shapes = (c.shapes && c.shapes[r]) || logqlCases.ranges[r].shapes
+        for (const [step, offset] of shapes) {
           const off = offset * 1000
           runs.push({
             ...base,
@@ -96,7 +98,7 @@ const logqlRuns = (d0, testId) => {
             end: d0 + logqlCases.range_end_after_d0_s * 1000 + off
           })
         }
-        for (const offset of logqlCases.instant_offsets) {
+        for (const offset of c.instant_offsets || logqlCases.instant_offsets) {
           runs.push({
             ...base,
             name: `${c.id}/${path} [${r}] step=instant offset=${offset}`,

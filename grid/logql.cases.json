@@ -64,6 +64,38 @@
      0
     ]
    ]
+  },
+  "90s": {
+   "shapes": [
+    [
+     30,
+     0
+    ],
+    [
+     60,
+     15
+    ],
+    [
+     90,
+     0
+    ],
+    [
+     300,
+     90
+    ]
+   ]
+  },
+  "100s": {
+   "shapes": [
+    [
+     60,
+     0
+    ],
+    [
+     300,
+     60
+    ]
+   ]
   }
  },
  "default_ranges": [
@@ -241,6 +273,61 @@
   {
    "id": "count_offset_7m",
    "query": "count_over_time({log} [{r}] offset 7m)"
+  },
+  {
+   "id": "count_edge_90s",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "90s"
+   ],
+   "note": "R = 90s puts a 5m-boundary line on T or on T-R, never both"
+  },
+  {
+   "id": "rate_by_l_edge_90s",
+   "query": "sum by (l) (rate({log} [{r}]))",
+   "ranges": [
+    "90s"
+   ]
+  },
+  {
+   "id": "count_off_lattice",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "5m"
+   ],
+   "shapes": {
+    "5m": [
+     [
+      20,
+      0
+     ],
+     [
+      45,
+      7
+     ]
+    ]
+   },
+   "instant_offsets": [
+    7,
+    1234
+   ],
+   "note": "step 20s and the instants are off the 15s lattice; step 45s is on it with w = 15s"
+  },
+  {
+   "id": "count_100s",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "100s"
+   ],
+   "note": "R off the 15s lattice"
+  },
+  {
+   "id": "count_offset_7s",
+   "query": "count_over_time({log} [{r}] offset 7s)",
+   "ranges": [
+    "5m"
+   ],
+   "note": "offset off the 15s lattice"
   }
  ]
 }
