@@ -43,6 +43,11 @@ describe('LogQL oracle on hand-checked windows', () => {
     expect(at(`max_over_time({job="j", l="a"} ${U} [3s])`, 3000)[0].points).toEqual([[3000, 7]])
     expect(at(`quantile_over_time(0.5, {job="j", l="a"} ${U} [3s])`, 3000)[0].points).toEqual([[3000, 4]])
   })
+  it('a range aggregation by/without pools the samples of each group', () => {
+    expect(at(`quantile_over_time(0.5, {job="j"} ${U} [5s]) by (job)`, 5000)).toEqual([{ metric: { job: 'j' }, points: [[5000, 3]] }])
+    expect(at(`max_over_time({job="j"} ${U} [5s]) without (l)`, 5000)).toEqual([{ metric: { job: 'j' }, points: [[5000, 7]] }])
+    expect(at(`max_over_time({job="j"} ${U} [2s]) by (l)`, 5000)).toEqual([{ metric: { l: 'b' }, points: [[5000, 2]] }])
+  })
   it('absent_over_time is vector-level and labelled by the equality matchers', () => {
     expect(at('absent_over_time({job="j", l=~"a|b"} [1s])', 4000)).toEqual([{ metric: { job: 'j' }, points: [[4000, 1]] }])
     expect(at('absent_over_time({job="j"} [2s])', 4000)).toEqual([])

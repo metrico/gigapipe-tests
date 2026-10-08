@@ -7,8 +7,12 @@ const { diff } = require('./grid/compare')
 const { logqlRuns, evalAt } = require('./grid/cases')
 const client = require('./grid/client')
 
-// Case ids that run.
-const ENABLED = new Set([])
+// Enabled runs, keyed case id/path.
+const ENABLED = new Set([
+  'count/internal', 'count_by_l/internal', 'rate/internal', 'rate_by_l/internal',
+  'bytes/internal', 'bytes_rate/internal', 'sum_unwrap_by_l/internal', 'max_unwrap_by_l/internal',
+  'quantile_by_l/internal', 'count_offset_7m/internal'
+])
 
 const TEST_ID = `${testID}_grid_logql`
 const D0 = seed.anchor(Date.now())
@@ -22,7 +26,7 @@ _it(SEEDED, async () => {
   expect(got).toEqual(STREAMS.length)
 })
 
-for (const run of logqlRuns(D0, TEST_ID).filter(r => ENABLED.has(r.id))) {
+for (const run of logqlRuns(D0, TEST_ID).filter(r => ENABLED.has(`${r.id}/${r.path}`))) {
   _it(`grid logql: ${run.name}`, async () => {
     const got = await client.queryLogql(run)
     const want = logql.evaluate(run.query, STREAMS, evalAt(run))

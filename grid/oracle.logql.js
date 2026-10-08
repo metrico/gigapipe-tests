@@ -133,7 +133,9 @@ const parse = (src) => {
       }
       const lr = logRange()
       expect(')')
-      return { type: 'range', fn: name, param, ...lr }
+      let grouping = null
+      if (isId('by') || isId('without')) grouping = { mode: next().v, labels: labelList() }
+      return { type: 'range', fn: name, param, grouping, ...lr }
     }
     throw new Error(`logql oracle: unsupported ${name} in ${src}`)
   }
@@ -210,8 +212,21 @@ const reduce = (node, items) => {
   throw new Error(`logql oracle: function ${node.fn}`)
 }
 
-// prepare runs the pipeline once over every matched stream and returns the
-// surviving entries grouped by output label set, in time order.
+// group keeps the `by` labels of an entry or drops the `without` ones.
+const group = (labels, grouping) => {
+  if (!grouping) return labels
+  if (grouping.mode === 'without') {
+    const out = { ...labels }
+    for (const l of grouping.labels) delete out[l]
+    return out
+  }
+  const out = {}
+  for (const l of grouping.labels) if (labels[l] !== undefined) out[l] = labels[l]
+  return out
+}
+
+// prepare runs the pipeline over every matched stream and returns the entries
+// per output label set (after the range by/without), in time order.
 const prepare = (node, streams) => {
   node.unwrap = node.stages.some(s => s.type === 'unwrap')
   if (UNWRAPPED.has(node.fn) && !node.unwrap) throw new Error(`logql oracle: ${node.fn} needs unwrap`)
@@ -221,8 +236,9 @@ const prepare = (node, streams) => {
     for (const e of s.entries) {
       const out = run(node.stages, s.labels, e)
       if (!out) continue
-      const k = labelKey(out.labels)
-      if (!series.has(k)) series.set(k, { labels: out.labels, items: [] })
+      const labels = group(out.labels, node.grouping)
+      const k = labelKey(labels)
+      if (!series.has(k)) series.set(k, { labels, items: [] })
       series.get(k).items.push({ t: e.t, value: out.value, bytes: out.bytes })
     }
   }

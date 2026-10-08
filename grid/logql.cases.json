@@ -26,6 +26,10 @@
     [
      3600,
      0
+    ],
+    [
+     420,
+     60
     ]
    ]
   },
@@ -160,13 +164,32 @@
    ]
   },
   {
+   "id": "max_unwrap_by_l",
+   "query": "max_over_time({log} | unwrap size [{r}]) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
    "id": "quantile_unwrap",
    "query": "quantile_over_time(0.9, {log} | unwrap size [{r}])",
    "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
    "paths": [
-    "natural"
+    "natural",
+    "internal"
    ],
-   "note": "the Go planner has no quantile_over_time"
+   "note": "the unwrapped size label stays on the result"
+  },
+  {
+   "id": "quantile_by_l",
+   "query": "quantile_over_time(0.9, {log} | unwrap size [{r}]) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ]
   },
   {
    "id": "absent_c",
