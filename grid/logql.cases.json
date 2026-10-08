@@ -73,7 +73,8 @@
  "selectors": {
   "": "{test_id=\"{id}\"}",
   "c": "{test_id=\"{id}\", l=\"c\"}",
-  "none": "{test_id=\"{id}\", l=\"none\"}"
+  "none": "{test_id=\"{id}\", l=\"none\"}",
+  "ac": "{test_id=\"{id}\", l=~\"a|c\"}"
  },
  "paths": {
   "natural": "{sel}{stages}",
@@ -203,7 +204,26 @@
    "id": "absent_none",
    "query": "absent_over_time({log:none} [{r}])",
    "paths": [
-    "natural"
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "absent_ac",
+   "query": "absent_over_time({log:ac} [{r}])",
+   "stages": " |= \"size=1 \"",
+   "ranges": [
+    "5m",
+    "15m",
+    "1h"
+   ]
+  },
+  {
+   "id": "absent_c_offset_7m",
+   "query": "absent_over_time({log:c} [{r}] offset 7m)",
+   "ranges": [
+    "5m",
+    "15m"
    ]
   },
   {

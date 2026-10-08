@@ -52,6 +52,7 @@ describe('LogQL oracle on hand-checked windows', () => {
     expect(at('absent_over_time({job="j", l=~"a|b"} [1s])', 4000)).toEqual([{ metric: { job: 'j' }, points: [[4000, 1]] }])
     expect(at('absent_over_time({job="j"} [2s])', 4000)).toEqual([])
     expect(at('absent_over_time({job="none"} [1s])', 1000)).toEqual([{ metric: { job: 'none' }, points: [[1000, 1]] }])
+    expect(at('absent_over_time({job="none", l!="a", l="b"} [1s])', 1000)).toEqual([{ metric: { job: 'none' }, points: [[1000, 1]] }])
   })
 })
 

@@ -246,6 +246,19 @@ const prepare = (node, streams) => {
   return [...series.values()]
 }
 
+// absentLabels follows Loki: the equality matchers, without any name that
+// has another matcher.
+const absentLabels = (matchers) => {
+  const labels = {}
+  const drop = []
+  for (const m of matchers) {
+    if (m.op === '=' && labels[m.name] === undefined) labels[m.name] = m.value
+    else drop.push(m.name)
+  }
+  for (const name of drop) delete labels[name]
+  return labels
+}
+
 // instant evaluates node at T and returns [{labels, v}].
 const instant = (node, T, streams, cache) => {
   if (node.type === 'range') {
@@ -254,9 +267,7 @@ const instant = (node, T, streams, cache) => {
     const lo = hi - node.range
     if (node.fn === 'absent_over_time') {
       if (cache.get(node).some(s => window(s.items, lo, hi).length > 0)) return []
-      const labels = {}
-      for (const m of node.matchers) if (m.op === '=') labels[m.name] = m.value
-      return [{ labels, v: 1 }]
+      return [{ labels: absentLabels(node.matchers), v: 1 }]
     }
     const out = []
     for (const s of cache.get(node)) {

@@ -11,7 +11,10 @@ const client = require('./grid/client')
 const ENABLED = new Set([
   'count/internal', 'count_by_l/internal', 'rate/internal', 'rate_by_l/internal',
   'bytes/internal', 'bytes_rate/internal', 'sum_unwrap_by_l/internal', 'max_unwrap_by_l/internal',
-  'quantile_by_l/internal', 'count_offset_7m/internal'
+  'quantile_by_l/internal', 'count_offset_7m/internal',
+  'absent_c/natural', 'absent_c/rawsql', 'absent_c/internal', 'absent_none/natural', 'absent_none/internal',
+  'absent_ac/natural', 'absent_ac/rawsql', 'absent_ac/internal',
+  'absent_c_offset_7m/natural', 'absent_c_offset_7m/rawsql', 'absent_c_offset_7m/internal'
 ])
 
 const TEST_ID = `${testID}_grid_logql`
