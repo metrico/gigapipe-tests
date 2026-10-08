@@ -134,6 +134,7 @@
    "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
    "paths": [
     "natural",
+    "rawsql",
     "internal"
    ]
   },
@@ -170,7 +171,17 @@
    "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
    "paths": [
     "natural",
+    "rawsql",
     "internal"
+   ]
+  },
+  {
+   "id": "max_unwrap_by_l_offset_7m",
+   "query": "max_over_time({log} | unwrap size [{r}] offset 7m) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "ranges": [
+    "5m",
+    "15m"
    ]
   },
   {
@@ -189,6 +200,7 @@
    "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
    "paths": [
     "natural",
+    "rawsql",
     "internal"
    ]
   },

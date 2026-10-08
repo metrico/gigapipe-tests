@@ -14,7 +14,12 @@ const ENABLED = new Set([
   'quantile_by_l/internal', 'count_offset_7m/internal',
   'absent_c/natural', 'absent_c/rawsql', 'absent_c/internal', 'absent_none/natural', 'absent_none/internal',
   'absent_ac/natural', 'absent_ac/rawsql', 'absent_ac/internal',
-  'absent_c_offset_7m/natural', 'absent_c_offset_7m/rawsql', 'absent_c_offset_7m/internal'
+  'absent_c_offset_7m/natural', 'absent_c_offset_7m/rawsql', 'absent_c_offset_7m/internal',
+  'count/rawsql', 'count_by_l/rawsql', 'rate/rawsql', 'rate_by_l/rawsql', 'count_offset_7m/rawsql',
+  'bytes/natural', 'bytes_rate/natural',
+  'sum_unwrap_by_l/natural', 'sum_unwrap_by_l/rawsql', 'max_unwrap_by_l/natural', 'max_unwrap_by_l/rawsql',
+  'quantile_by_l/natural', 'quantile_by_l/rawsql', 'max_unwrap_by_l_offset_7m/natural',
+  'max_unwrap_by_l_offset_7m/rawsql', 'max_unwrap_by_l_offset_7m/internal'
 ])
 
 const TEST_ID = `${testID}_grid_logql`
