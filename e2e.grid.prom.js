@@ -8,7 +8,9 @@ const { promRuns, evalAt } = require('./grid/cases')
 const client = require('./grid/client')
 
 // Case ids that run.
-const ENABLED = new Set([])
+const ENABLED = new Set([
+  'irate_15m', 'deriv_15m_y', 'i_irate_15m', 'i_deriv_15m_y'
+])
 
 const TEST_ID = `${testID}_grid_prom`
 const D0 = seed.anchor(Date.now())
