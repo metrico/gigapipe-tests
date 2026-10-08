@@ -13,7 +13,10 @@ const ENABLED = new Set([
   'unaligned_bare_x', 'unaligned_bare_y', 'unaligned_avg_ot_1h_y', 'unaligned_max_ot_5m_y',
   'unaligned_rate_15m', 'unaligned_absent_ot_5m_x', 'unaligned_offset_7m_y', 'unaligned_sum_by_y',
   'i_unaligned_bare_x', 'i_unaligned_bare_y', 'i_unaligned_max_ot_5m_y', 'i_unaligned_rate_15m',
-  'i_unaligned_offset_7m_y'
+  'i_unaligned_offset_7m_y',
+  'bare_x', 'bare_y', 'offset_7m_y', 'at_y', 'absent_ot_5m_x', 'subq_max_y', 'subq_max_x',
+  'i_bare_x', 'i_bare_y', 'i_offset_7m_y', 'i_subq_max_y', 'i_at_y', 'grafana_tz_bare_y', 'step420_bare_y',
+  'fine_bare_y', 'absent_ot_1m_x', 'i_absent_ot_1m_x', 'subq_1m_max_y'
 ])
 
 const TEST_ID = `${testID}_grid_prom`

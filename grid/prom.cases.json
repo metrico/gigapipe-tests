@@ -675,6 +675,91 @@
     ]
    },
    "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "fine_bare_y",
+   "query": "{gy}",
+   "steps": [
+    15,
+    60
+   ],
+   "offsets": {
+    "15": [
+     0
+    ],
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "steps below the lookback: buckets of 15s and 60s"
+  },
+  {
+   "id": "absent_ot_1m_x",
+   "query": "absent_over_time({gx}[1m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     0,
+     60,
+     420
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ],
+   "note": "offset 60 puts a phase0 sample exactly on T-1m, outside (T-1m, T]"
+  },
+  {
+   "id": "subq_1m_max_y",
+   "query": "max_over_time({gy}[30m:1m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     0,
+     60,
+     1800
+    ]
+   },
+   "note": "inner selectors on the epoch 1m grid"
+  },
+  {
+   "id": "i_absent_ot_1m_x",
+   "query": "absent_over_time({gx}[1m])",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     0,
+     60,
+     420,
+     1800
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_at_y",
+   "query": "{gy} @ {at}",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     0,
+     60,
+     1800
+    ]
+   }
   }
  ]
 }
