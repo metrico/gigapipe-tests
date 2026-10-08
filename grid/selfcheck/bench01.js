@@ -1,6 +1,5 @@
-// The PromQL repro harness dataset and cases (gigapipe
-// scripts/bench/grid-alignment): 7 days of 5m samples from a fixed D0, in a
-// phase-0 family and a +20s family.
+// The PromQL repro dataset and cases: 7 days of 5m samples from a fixed D0,
+// in a phase-0 family and a +20s family, swept at the repro's offsets.
 
 const D0 = Date.UTC(2026, 8, 28)
 const N = 7 * 24 * 12
@@ -70,7 +69,6 @@ const CASES = [
   ['i_subq_max_y', 'max_over_time({gy}[1h:5m])', null]
 ]
 
-// runs mirrors the harness sweep: same names, windows and offsets.
 const runs = () => {
   const out = []
   for (const [suffix] of FAMILIES) {

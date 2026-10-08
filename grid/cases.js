@@ -111,4 +111,7 @@ const logqlRuns = (d0, testId) => {
   return runs
 }
 
-module.exports = { promRuns, logqlRuns, secs }
+// evalAt returns the oracle's evaluation times for a run.
+const evalAt = (run) => run.instant ? { time: run.time } : { start: run.start, end: run.end, step: run.step }
+
+module.exports = { promRuns, logqlRuns, evalAt, secs }

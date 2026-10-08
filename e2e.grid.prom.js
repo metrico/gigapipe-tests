@@ -4,10 +4,10 @@ const { _it, testID } = require('./common')
 const seed = require('./grid/seed')
 const { prom } = require('./grid/oracle')
 const { diff } = require('./grid/compare')
-const { promRuns } = require('./grid/cases')
+const { promRuns, evalAt } = require('./grid/cases')
 const client = require('./grid/client')
 
-// Case ids that run; a case is enabled by the fix that turns it green.
+// Case ids that run.
 const ENABLED = new Set([])
 
 const TEST_ID = `${testID}_grid_prom`
@@ -24,7 +24,7 @@ _it(SEEDED, async () => {
 for (const run of promRuns(D0, TEST_ID).filter(r => ENABLED.has(r.id))) {
   _it(`grid prom: ${run.name}`, async () => {
     const got = await client.queryProm(run)
-    const want = prom.evaluate(run.query, SERIES, run.instant ? { time: run.time } : run)
+    const want = prom.evaluate(run.query, SERIES, evalAt(run))
     expect(diff(got, want)).toEqual([])
   }, [SEEDED])
 }

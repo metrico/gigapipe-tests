@@ -3,13 +3,17 @@
 // the lookback is (T-5m, T]; a subquery's inner grid is epoch k*SS.
 // Supports the subset the grid cases use. Times are milliseconds.
 
+const { labelKey, matches, window, quantile, variance, aggregate, toSeries } = require('./oracle.common')
+
 const LOOKBACK = 5 * 60 * 1000
 const DEFAULT_SUBQUERY_STEP = 60 * 1000
 
 const AGGS = new Set(['sum', 'min', 'max', 'avg', 'count', 'group'])
 const OVER_TIME = new Set(['avg_over_time', 'min_over_time', 'max_over_time', 'sum_over_time',
-  'count_over_time', 'last_over_time', 'present_over_time', 'stddev_over_time',
+  'count_over_time', 'first_over_time', 'last_over_time', 'present_over_time', 'stddev_over_time',
   'stdvar_over_time', 'quantile_over_time', 'absent_over_time'])
+// Functions whose output keeps the metric name.
+const KEEP_NAME = new Set(['first_over_time', 'last_over_time'])
 const COUNTERS = new Set(['rate', 'increase', 'delta', 'irate', 'idelta', 'deriv', 'resets', 'changes'])
 
 // ---------------------------------------------------------------- parser
@@ -150,53 +154,9 @@ const parse = (src) => {
 
 // ---------------------------------------------------------------- helpers
 
-const labelKey = (labels) => JSON.stringify(Object.keys(labels).sort().map(k => [k, labels[k]]))
-
-const matches = (labels, ms) => ms.every(({ name, op, value }) => {
-  const v = labels[name] || ''
-  switch (op) {
-    case '=': return v === value
-    case '!=': return v !== value
-    case '=~': return new RegExp(`^(?:${value})$`).test(v)
-    case '!~': return !new RegExp(`^(?:${value})$`).test(v)
-  }
-  throw new Error(`promql oracle: matcher op ${op}`)
-})
-
 const dropName = (labels) => {
   const { __name__, ...rest } = labels
   return rest
-}
-
-// window returns the samples with lo < t <= hi; samples are sorted by t.
-const window = (samples, lo, hi) => {
-  let a = 0
-  let b = samples.length
-  while (a < b) {
-    const m = (a + b) >> 1
-    if (samples[m].t > lo) b = m
-    else a = m + 1
-  }
-  const out = []
-  for (let k = a; k < samples.length && samples[k].t <= hi; k++) out.push(samples[k])
-  return out
-}
-
-const quantile = (q, vs) => {
-  if (vs.length === 0) return NaN
-  if (q < 0) return -Infinity
-  if (q > 1) return Infinity
-  const s = [...vs].sort((x, y) => x - y)
-  const rank = q * (s.length - 1)
-  const lo = Math.max(0, Math.floor(rank))
-  const hi = Math.min(s.length - 1, lo + 1)
-  const w = rank - Math.floor(rank)
-  return s[lo] * (1 - w) + s[hi] * w
-}
-
-const variance = (vs) => {
-  const mean = vs.reduce((a, b) => a + b, 0) / vs.length
-  return vs.reduce((a, b) => a + (b - mean) * (b - mean), 0) / vs.length
 }
 
 // extrapolatedRate mirrors promql/functions.go extrapolatedRate.
@@ -250,6 +210,7 @@ const rangeFn = (fn, ss, ctx) => {
     case 'max_over_time': return Math.max(...vs)
     case 'sum_over_time': return vs.reduce((a, b) => a + b, 0)
     case 'count_over_time': return vs.length
+    case 'first_over_time': return vs[0]
     case 'last_over_time': return vs[vs.length - 1]
     case 'present_over_time': return 1
     case 'stddev_over_time': return Math.sqrt(variance(vs))
@@ -336,41 +297,14 @@ const instant = (node, T, data) => {
         const out = []
         for (const s of rangeVector(arg, T, data)) {
           const v = rangeFn(fn, s.samples, { param, lo: s.lo, hi: s.hi, range: s.range })
-          if (v !== null) out.push({ labels: dropName(s.labels), v })
+          if (v !== null) out.push({ labels: KEEP_NAME.has(fn) ? s.labels : dropName(s.labels), v })
         }
         return out
       }
       throw new Error(`promql oracle: function ${fn}`)
     }
-    case 'agg': {
-      const groups = new Map()
-      for (const el of instant(node.expr, T, data)) {
-        let labels
-        if (!node.grouping) labels = {}
-        else if (node.grouping.mode === 'by') {
-          labels = {}
-          for (const l of node.grouping.labels) if (el.labels[l] !== undefined) labels[l] = el.labels[l]
-        } else {
-          labels = dropName(el.labels)
-          for (const l of node.grouping.labels) delete labels[l]
-        }
-        const k = labelKey(labels)
-        if (!groups.has(k)) groups.set(k, { labels, vs: [] })
-        groups.get(k).vs.push(el.v)
-      }
-      return [...groups.values()].map(({ labels, vs }) => {
-        const sum = vs.reduce((a, b) => a + b, 0)
-        const v = {
-          sum,
-          avg: sum / vs.length,
-          min: Math.min(...vs),
-          max: Math.max(...vs),
-          count: vs.length,
-          group: 1
-        }[node.op]
-        return { labels, v }
-      })
-    }
+    case 'agg':
+      return aggregate(node.op, node.grouping, instant(node.expr, T, data), ['__name__'])
   }
   throw new Error(`promql oracle: cannot evaluate ${node.type}`)
 }
@@ -392,15 +326,7 @@ const rangeGrid = (start, end, step) => {
 const evaluate = (query, data, at) => {
   const ast = parse(query)
   const times = at.time !== undefined ? [at.time] : rangeGrid(at.start, at.end, at.step)
-  const series = new Map()
-  for (const T of times) {
-    for (const el of instant(ast, T, data)) {
-      const k = labelKey(el.labels)
-      if (!series.has(k)) series.set(k, { metric: el.labels, points: [] })
-      series.get(k).points.push([T, el.v])
-    }
-  }
-  return [...series.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([, s]) => s)
+  return toSeries(times, T => instant(ast, T, data))
 }
 
 module.exports = { evaluate, parse, rangeGrid, LOOKBACK }

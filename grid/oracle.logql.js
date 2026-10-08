@@ -4,6 +4,8 @@
 // range aggregation at T is (T-offset-R, T-offset]. Zero values are dropped.
 // Supports the subset the grid cases use. Times are milliseconds.
 
+const { labelKey, matches, window, quantile, variance, aggregate, toSeries } = require('./oracle.common')
+
 const UNITS = { ms: 1, s: 1000, m: 60000, h: 3600000, d: 86400000, w: 604800000 }
 
 const RANGE_FNS = new Set(['count_over_time', 'rate', 'bytes_over_time', 'bytes_rate',
@@ -142,19 +144,6 @@ const parse = (src) => {
 
 // ---------------------------------------------------------------- pipeline
 
-const labelKey = (labels) => JSON.stringify(Object.keys(labels).sort().map(k => [k, labels[k]]))
-
-const matches = (labels, ms) => ms.every(({ name, op, value }) => {
-  const v = labels[name] || ''
-  switch (op) {
-    case '=': return v === value
-    case '!=': return v !== value
-    case '=~': return new RegExp(`^(?:${value})$`).test(v)
-    case '!~': return !new RegExp(`^(?:${value})$`).test(v)
-  }
-  throw new Error(`logql oracle: matcher op ${op}`)
-})
-
 // addLabel follows Loki: an extracted label that collides with a stream
 // label is stored as <name>_extracted.
 const addLabel = (labels, stream, name, value) => {
@@ -199,22 +188,6 @@ const run = (stages, stream, entry) => {
 
 // ---------------------------------------------------------------- evaluator
 
-const quantile = (q, vs) => {
-  if (q < 0) return -Infinity
-  if (q > 1) return Infinity
-  const s = [...vs].sort((x, y) => x - y)
-  const rank = q * (s.length - 1)
-  const lo = Math.max(0, Math.floor(rank))
-  const hi = Math.min(s.length - 1, lo + 1)
-  const w = rank - Math.floor(rank)
-  return s[lo] * (1 - w) + s[hi] * w
-}
-
-const variance = (vs) => {
-  const mean = vs.reduce((a, b) => a + b, 0) / vs.length
-  return vs.reduce((a, b) => a + (b - mean) * (b - mean), 0) / vs.length
-}
-
 const reduce = (node, items) => {
   const r = node.range / 1000
   const vs = items.map(x => x.value)
@@ -257,19 +230,6 @@ const prepare = (node, streams) => {
   return [...series.values()]
 }
 
-const window = (items, lo, hi) => {
-  let a = 0
-  let b = items.length
-  while (a < b) {
-    const m = (a + b) >> 1
-    if (items[m].t > lo) b = m
-    else a = m + 1
-  }
-  const out = []
-  for (let k = a; k < items.length && items[k].t <= hi; k++) out.push(items[k])
-  return out
-}
-
 // instant evaluates node at T and returns [{labels, v}].
 const instant = (node, T, streams, cache) => {
   if (node.type === 'range') {
@@ -289,34 +249,7 @@ const instant = (node, T, streams, cache) => {
     }
     return out
   }
-  const groups = new Map()
-  for (const el of instant(node.expr, T, streams, cache)) {
-    let labels
-    if (!node.grouping) labels = {}
-    else if (node.grouping.mode === 'by') {
-      labels = {}
-      for (const l of node.grouping.labels) if (el.labels[l] !== undefined) labels[l] = el.labels[l]
-    } else {
-      labels = { ...el.labels }
-      for (const l of node.grouping.labels) delete labels[l]
-    }
-    const k = labelKey(labels)
-    if (!groups.has(k)) groups.set(k, { labels, vs: [] })
-    groups.get(k).vs.push(el.v)
-  }
-  return [...groups.values()].map(({ labels, vs }) => {
-    const sum = vs.reduce((a, b) => a + b, 0)
-    const v = {
-      sum,
-      avg: sum / vs.length,
-      min: Math.min(...vs),
-      max: Math.max(...vs),
-      count: vs.length,
-      stddev: Math.sqrt(variance(vs)),
-      stdvar: variance(vs)
-    }[node.op]
-    return { labels, v }
-  })
+  return aggregate(node.op, node.grouping, instant(node.expr, T, streams, cache))
 }
 
 // rangeGrid returns the Loki frontend grid: epoch k*step from floor(start)
@@ -338,16 +271,7 @@ const evaluate = (query, streams, at) => {
   const ast = parse(query)
   const times = at.times || (at.time !== undefined ? [at.time] : rangeGrid(at.start, at.end, at.step))
   const cache = new Map()
-  const series = new Map()
-  for (const T of times) {
-    for (const el of instant(ast, T, streams, cache)) {
-      if (el.v === 0) continue
-      const k = labelKey(el.labels)
-      if (!series.has(k)) series.set(k, { metric: el.labels, points: [] })
-      series.get(k).points.push([T, el.v])
-    }
-  }
-  return [...series.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0).map(([, s]) => s)
+  return toSeries(times, T => instant(ast, T, streams, cache), v => v === 0)
 }
 
 module.exports = { evaluate, parse, rangeGrid }

@@ -93,7 +93,7 @@ const logMsg = (size, n) => {
 /**
  * logStreams returns every seeded LogQL stream:
  * [{labels: {l, pod, ...base}, entries: [{t, line}]}], entries in time order.
- * Dense streams carry 0..6 lines a minute at +20s..+56s with ms jitter and
+ * Dense streams carry 0..6 lines a minute from +20s, with ms jitter and
  * varying lengths; each line starts with `size=N`.
  * @param d0 {number}
  * @param base {Object<string, string>}

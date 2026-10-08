@@ -107,7 +107,7 @@
    "id": "bytes",
    "query": "bytes_over_time({log} [{r}])",
    "check": "shape",
-   "note": "values divide by R on the SQL paths; tracked separately",
+   "note": "checked by series and timestamps only",
    "paths": [
     "natural",
     "internal"
@@ -117,7 +117,7 @@
    "id": "bytes_rate",
    "query": "bytes_rate({log} [{r}])",
    "check": "shape",
-   "note": "values divide by R on the SQL paths; tracked separately",
+   "note": "checked by series and timestamps only",
    "paths": [
     "natural",
     "internal"
