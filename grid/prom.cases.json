@@ -760,6 +760,134 @@
      1800
     ]
    }
+  },
+  {
+   "id": "resets_1h",
+   "query": "resets({gc}[1h])",
+   "steps": [
+    3600,
+    900
+   ],
+   "note": "the counter resets at D0+30h"
+  },
+  {
+   "id": "changes_15m_x",
+   "query": "changes({gx}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "delta_15m_y",
+   "query": "delta({gy}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "i_rate_1h",
+   "query": "rate({gc}[1h])",
+   "instant": true
+  },
+  {
+   "id": "i_sum_y",
+   "query": "sum({gy})",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "step420_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_increase_15m",
+   "query": "increase({gc}[15m])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "grafana_tz_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "grafana_tz_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "fine_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    60
+   ],
+   "offsets": {
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "a step below the lookback across the 2h gap"
+  },
+  {
+   "id": "fine_rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    60
+   ],
+   "offsets": {
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "a step below the lookback across the 2h gap and the reset"
+  },
+  {
+   "id": "subq_rate_max",
+   "query": "max_over_time(rate({gc}[15m])[1h:5m])",
+   "steps": [
+    3600
+   ]
   }
  ]
 }
