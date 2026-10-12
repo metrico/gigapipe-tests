@@ -220739,6 +220739,14 @@ exports[`traceql: count 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "count()",
+              "value": {
+                "intValue": "1",
+              },
+            },
+          ],
           "matched": 1,
           "spans": [
             {
@@ -220759,6 +220767,14 @@ exports[`traceql: count 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "count()",
+              "value": {
+                "intValue": "1",
+              },
+            },
+          ],
           "matched": 1,
           "spans": [
             {
@@ -220779,6 +220795,14 @@ exports[`traceql: count 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "count()",
+              "value": {
+                "intValue": "1",
+              },
+            },
+          ],
           "matched": 1,
           "spans": [
             {
@@ -220799,6 +220823,14 @@ exports[`traceql: count 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "count()",
+              "value": {
+                "intValue": "1",
+              },
+            },
+          ],
           "matched": 1,
           "spans": [
             {
@@ -220819,6 +220851,14 @@ exports[`traceql: count 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "count()",
+              "value": {
+                "intValue": "1",
+              },
+            },
+          ],
           "matched": 1,
           "spans": [
             {
@@ -221066,6 +221106,14 @@ exports[`traceql: max duration 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221098,6 +221146,14 @@ exports[`traceql: max duration 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221130,6 +221186,14 @@ exports[`traceql: max duration 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221162,6 +221226,14 @@ exports[`traceql: max duration 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221194,6 +221266,14 @@ exports[`traceql: max duration 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221787,6 +221867,14 @@ exports[`traceql: tags with dash 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221819,6 +221907,14 @@ exports[`traceql: tags with dash 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221851,6 +221947,14 @@ exports[`traceql: tags with dash 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221883,6 +221987,14 @@ exports[`traceql: tags with dash 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
@@ -221915,6 +222027,14 @@ exports[`traceql: tags with dash 1`] = `
       "rootTraceName": "span from http#0",
       "spanSets": [
         {
+          "attributes": [
+            {
+              "key": "max(duration)",
+              "value": {
+                "stringValue": "9ms",
+              },
+            },
+          ],
           "matched": 10,
           "spans": [
             {
