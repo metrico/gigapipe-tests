@@ -669,8 +669,8 @@ const needsWholeTrace = (elements) => elements.some(e => {
   return false
 })
 
-// newestFirst orders spans by start time, then span id, both descending.
-const newestFirst = (a, b) => b.start - a.start || (a.spanId < b.spanId ? 1 : a.spanId > b.spanId ? -1 : 0)
+// earliestFirst orders spans by start time, then span id, both ascending.
+const earliestFirst = (a, b) => a.start - b.start || (a.spanId < b.spanId ? -1 : a.spanId > b.spanId ? 1 : 0)
 
 /**
  * nestedSet numbers each trace's spans depth-first under gigapipe's rules:
@@ -794,12 +794,12 @@ const attributeValue = ({ type, value, text }) => {
  * search returns the expected traces of a search, newest first:
  * [{trace, traceId, spans: [span name, ...], matched, attributes, selected, spanSets}],
  * or the error result of resultSpansets(). The spansets are resultSpansets();
- * a trace lists them in spanSets by group key, each with its spss newest
- * result spans, matched and attributes as {name: OTLP value}, and the first
- * of them at the top level. selected maps a listed span's name to its
- * select() values, {key: text or {intValue}} with the span name at
- * SPAN_NAME, for the spans that have any. limit counts traces by their
- * newest result span (ties by trace id, descending).
+ * a trace lists them in spanSets by group key, each with its spss
+ * earliest-starting result spans (ties by span id), matched and attributes
+ * as {name: OTLP value}, and the first of them at the top level. selected
+ * maps a listed span's name to its select() values, {key: text or {intValue}}
+ * with the span name at SPAN_NAME, for the spans that have any. limit counts
+ * traces by their newest result span (ties by trace id, descending).
  * @param query {Object} the case AST
  * @param all {Object[]} from dataset()
  * @param opts {{from: number, to: number, limit: number, spss?: number, rounds?: number, pushes?: number}}
@@ -811,11 +811,11 @@ const search = (query, all, opts) => {
   const byTrace = new Map()
   for (const ss of sets) {
     if (!byTrace.has(ss.traceId)) byTrace.set(ss.traceId, [])
-    byTrace.get(ss.traceId).push({ ...ss, spans: [...ss.spans].sort(newestFirst) })
+    byTrace.get(ss.traceId).push({ ...ss, spans: [...ss.spans].sort(earliestFirst) })
   }
   const traces = [...byTrace.values()].map(tss => {
     tss.sort((a, b) => compareKeys(a.key, b.key))
-    const newest = Math.max(...tss.map(ss => ss.spans[0].start))
+    const newest = Math.max(...tss.flatMap(ss => ss.spans.map(s => s.start)))
     return { traceId: tss[0].traceId, trace: tss[0].spans[0].trace, newest, sets: tss }
   })
   traces.sort((a, b) => b.newest - a.newest || (a.traceId < b.traceId ? 1 : -1))
