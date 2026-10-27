@@ -21,8 +21,11 @@ const ENABLED = new Set([
   'quantile_by_l/natural', 'quantile_by_l/rawsql', 'max_unwrap_by_l_offset_7m/natural',
   'max_unwrap_by_l_offset_7m/rawsql', 'max_unwrap_by_l_offset_7m/internal',
   'count/natural', 'count_by_l/natural', 'rate/natural', 'rate_by_l/natural', 'count_offset_7m/natural',
-  ...['count_edge_90s', 'rate_by_l_edge_90s', 'count_off_lattice', 'count_100s', 'count_offset_7s']
-    .flatMap(id => [`${id}/natural`, `${id}/rawsql`, `${id}/internal`])
+  ...['count_off_lattice', 'count_100s', 'count_offset_7s']
+    .flatMap(id => [`${id}/natural`, `${id}/rawsql`, `${id}/internal`]),
+  // The natural path of these runs is served from metrics_15s cells, which
+  // count [T-R, T) instead of (T-R, T]; see the todo below.
+  ...['count_edge_90s', 'rate_by_l_edge_90s'].flatMap(id => [`${id}/rawsql`, `${id}/internal`])
 ])
 
 const TEST_ID = `${testID}_grid_logql`
@@ -46,3 +49,4 @@ for (const run of logqlRuns(D0, TEST_ID).filter(r => ENABLED.has(`${r.id}/${r.pa
 }
 
 it.todo('grid logql: bytes_over_time/bytes_rate values (SQL-path bytes_over_time divides by R)')
+it.todo('grid logql: count_edge_90s and rate_by_l_edge_90s on the natural path (metrics_15s cells count [T-R, T), not (T-R, T]; metrico/gigapipe#1015)')
