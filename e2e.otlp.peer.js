@@ -16,6 +16,7 @@ const {
 const peerTestID = testID + 'peer'
 const caller = 'peer-caller-' + testID
 const callee = 'peer-callee-' + testID
+let peerTraceId
 
 _it('otlp traces: should push a client span naming its callee', async () => {
   const { Resource } = require('@opentelemetry/resources')
@@ -35,6 +36,7 @@ _it('otlp traces: should push a client span naming its callee', async () => {
     kind: SpanKind.CLIENT,
     attributes: { 'peer.service': callee, testId: peerTestID }
   })
+  peerTraceId = span.spanContext().traceId
   span.end()
   await provider.forceFlush()
   await provider.shutdown()
@@ -56,4 +58,17 @@ _it('otlp traces: should file a client span under its own service', async () => 
 _it('otlp traces: should not file a client span under its callee', async () => {
   expect(await searchCount(`{.testId="${peerTestID}" && .service.name="${callee}"}`)).toBe(0)
   expect(await searchCount(`{.testId="${peerTestID}" && .peer.service="${callee}"}`)).toBe(1)
+}, ['otlp traces: should push a client span naming its callee'])
+
+// The trace view re-derives each span's service when serving a trace by id. It
+// must agree with search: the client span shows under the caller, and still
+// carries peer.service naming the callee.
+_it('otlp traces: should show a client span under its own service in the trace view', async () => {
+  const res = await axiosGet(`http://${clokiExtUrl}/tempo/api/traces/${peerTraceId.toUpperCase()}`,
+    { headers: { 'X-Scope-OrgID': '1' } })
+  const span = res.data.resourceSpans[0].instrumentationLibrarySpans[0].spans[0]
+  const attr = (key) => (span.attributes.find(a => a.key === key) || { value: {} }).value.stringValue
+  expect(span.serviceName).toBe(caller)
+  expect(attr('service.name')).toBe(caller)
+  expect(attr('peer.service')).toBe(callee)
 }, ['otlp traces: should push a client span naming its callee'])
