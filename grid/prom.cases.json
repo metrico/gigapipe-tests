@@ -1,0 +1,893 @@
+{
+ "range_start_after_d0_s": 43200,
+ "range_end_after_d0_s": 129600,
+ "instant_at_after_d0_s": 144000,
+ "default_families": [
+  "phase0",
+  "p20",
+  "p7"
+ ],
+ "default_offsets": {
+  "300": [
+   0,
+   60,
+   240
+  ],
+  "900": [
+   0,
+   60,
+   463
+  ],
+  "3600": [
+   0,
+   60,
+   420,
+   1800
+  ],
+  "21600": [
+   0,
+   420,
+   10813
+  ],
+  "86400": [
+   0,
+   1800,
+   43213
+  ],
+  "instant": [
+   0,
+   60,
+   420,
+   1800
+  ]
+ },
+ "cases": [
+  {
+   "id": "bare_x",
+   "query": "{gx}",
+   "steps": [
+    300,
+    3600,
+    900,
+    21600,
+    86400
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "bare_y",
+   "query": "{gy}",
+   "steps": [
+    300,
+    3600,
+    900,
+    21600,
+    86400
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "avg_ot_1h_x",
+   "query": "avg_over_time({gx}[1h])",
+   "steps": [
+    3600
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    3600,
+    21600,
+    86400
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "max_ot_5m_x",
+   "query": "max_over_time({gx}[5m])",
+   "steps": [
+    3600
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "steps": [
+    3600,
+    900,
+    21600
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "rate_5m",
+   "query": "rate({gc}[5m])",
+   "steps": [
+    300,
+    3600
+   ],
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "increase_5m",
+   "query": "increase({gc}[5m])",
+   "steps": [
+    300,
+    3600
+   ],
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    300,
+    3600,
+    900
+   ]
+  },
+  {
+   "id": "increase_15m",
+   "query": "increase({gc}[15m])",
+   "steps": [
+    300,
+    3600,
+    900
+   ]
+  },
+  {
+   "id": "rate_1h",
+   "query": "rate({gc}[1h])",
+   "steps": [
+    3600,
+    21600
+   ]
+  },
+  {
+   "id": "irate_15m",
+   "query": "irate({gc}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "deriv_15m_y",
+   "query": "deriv({gy}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "absent_ot_5m_x",
+   "query": "absent_over_time({gx}[5m])",
+   "steps": [
+    3600,
+    21600
+   ],
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "sum_by_x",
+   "query": "sum by (l) ({gx})",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    300,
+    3600,
+    21600
+   ]
+  },
+  {
+   "id": "sum_rate",
+   "query": "sum(rate({gc}[5m]))",
+   "steps": [
+    300,
+    3600
+   ],
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "sum_rate_15m",
+   "query": "sum(rate({gc}[15m]))",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "offset_7m_y",
+   "query": "{gy} offset 7m",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "at_y",
+   "query": "{gy} @ {at}",
+   "steps": [
+    3600
+   ]
+  },
+  {
+   "id": "subq_max_y",
+   "query": "max_over_time({gy}[1h:5m])",
+   "steps": [
+    3600,
+    21600
+   ]
+  },
+  {
+   "id": "subq_max_x",
+   "query": "max_over_time({gx}[1h:5m])",
+   "steps": [
+    3600
+   ]
+  },
+  {
+   "id": "i_bare_x",
+   "query": "{gx}",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_bare_y",
+   "query": "{gy}",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_rate_5m",
+   "query": "rate({gc}[5m])",
+   "instant": true,
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "i_increase_5m",
+   "query": "increase({gc}[5m])",
+   "instant": true,
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "i_rate_15m",
+   "query": "rate({gc}[15m])",
+   "instant": true
+  },
+  {
+   "id": "i_increase_15m",
+   "query": "increase({gc}[15m])",
+   "instant": true
+  },
+  {
+   "id": "i_irate_15m",
+   "query": "irate({gc}[15m])",
+   "instant": true
+  },
+  {
+   "id": "i_deriv_15m_y",
+   "query": "deriv({gy}[15m])",
+   "instant": true
+  },
+  {
+   "id": "i_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "instant": true
+  },
+  {
+   "id": "i_sum_rate",
+   "query": "sum(rate({gc}[5m]))",
+   "instant": true,
+   "note": "(T-5m, T] holds one 5m-spaced sample, so the reference is empty"
+  },
+  {
+   "id": "i_sum_rate_15m",
+   "query": "sum(rate({gc}[15m]))",
+   "instant": true
+  },
+  {
+   "id": "i_offset_7m_y",
+   "query": "{gy} offset 7m",
+   "instant": true
+  },
+  {
+   "id": "i_subq_max_y",
+   "query": "max_over_time({gy}[1h:5m])",
+   "instant": true
+  },
+  {
+   "id": "unaligned_bare_y",
+   "query": "{gy}",
+   "steps": [
+    300,
+    420,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "unaligned_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    420,
+    3600
+   ],
+   "offsets": {
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "unaligned_rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    300,
+    420,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "i_unaligned_bare_y",
+   "query": "{gy}",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "i_unaligned_rate_15m",
+   "query": "rate({gc}[15m])",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "unaligned_bare_x",
+   "query": "{gx}",
+   "steps": [
+    300,
+    420,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "steps": [
+    420,
+    3600
+   ],
+   "offsets": {
+    "420": [
+     7
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_absent_ot_5m_x",
+   "query": "absent_over_time({gx}[5m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     7,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "unaligned_offset_7m_y",
+   "query": "{gy} offset 7m",
+   "steps": [
+    300,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "unaligned_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    300,
+    3600
+   ],
+   "offsets": {
+    "300": [
+     7,
+     60.25
+    ],
+    "3600": [
+     7,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "i_unaligned_bare_x",
+   "query": "{gx}",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_unaligned_max_ot_5m_y",
+   "query": "max_over_time({gy}[5m])",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_unaligned_offset_7m_y",
+   "query": "{gy} offset 7m",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     7,
+     60.25,
+     1234.567
+    ]
+   }
+  },
+  {
+   "id": "step420_bare_y",
+   "query": "{gy}",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "grafana_tz_bare_y",
+   "query": "{gy}",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "grafana_tz_rate_1h",
+   "query": "rate({gc}[1h])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "fine_bare_y",
+   "query": "{gy}",
+   "steps": [
+    15,
+    60
+   ],
+   "offsets": {
+    "15": [
+     0
+    ],
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "steps below the lookback: buckets of 15s and 60s"
+  },
+  {
+   "id": "absent_ot_1m_x",
+   "query": "absent_over_time({gx}[1m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     0,
+     60,
+     420
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ],
+   "note": "offset 60 puts a phase0 sample exactly on T-1m, outside (T-1m, T]"
+  },
+  {
+   "id": "subq_1m_max_y",
+   "query": "max_over_time({gy}[30m:1m])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     0,
+     60,
+     1800
+    ]
+   },
+   "note": "inner selectors on the epoch 1m grid"
+  },
+  {
+   "id": "i_absent_ot_1m_x",
+   "query": "absent_over_time({gx}[1m])",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     0,
+     60,
+     420,
+     1800
+    ]
+   },
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "i_at_y",
+   "query": "{gy} @ {at}",
+   "instant": true,
+   "offsets": {
+    "instant": [
+     0,
+     60,
+     1800
+    ]
+   }
+  },
+  {
+   "id": "resets_1h",
+   "query": "resets({gc}[1h])",
+   "steps": [
+    3600,
+    900
+   ],
+   "note": "the counter resets at D0+30h"
+  },
+  {
+   "id": "changes_15m_x",
+   "query": "changes({gx}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "delta_15m_y",
+   "query": "delta({gy}[15m])",
+   "steps": [
+    300,
+    3600
+   ]
+  },
+  {
+   "id": "i_rate_1h",
+   "query": "rate({gc}[1h])",
+   "instant": true
+  },
+  {
+   "id": "i_sum_y",
+   "query": "sum({gy})",
+   "instant": true,
+   "families": [
+    "phase0",
+    "p20",
+    "p7",
+    "sparse"
+   ]
+  },
+  {
+   "id": "step420_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "step420_increase_15m",
+   "query": "increase({gc}[15m])",
+   "steps": [
+    420
+   ],
+   "offsets": {
+    "420": [
+     0
+    ]
+   },
+   "note": "start mod 420 is 360s, on the 15s lattice"
+  },
+  {
+   "id": "grafana_tz_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "grafana_tz_avg_ot_1h_y",
+   "query": "avg_over_time({gy}[1h])",
+   "steps": [
+    3600
+   ],
+   "offsets": {
+    "3600": [
+     1800
+    ]
+   },
+   "note": "Grafana floors start to k*step - utcOffset; UTC+5:30 gives phase 30m"
+  },
+  {
+   "id": "fine_sum_by_y",
+   "query": "sum by (l) ({gy})",
+   "steps": [
+    60
+   ],
+   "offsets": {
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "a step below the lookback across the 2h gap"
+  },
+  {
+   "id": "fine_rate_15m",
+   "query": "rate({gc}[15m])",
+   "steps": [
+    60
+   ],
+   "offsets": {
+    "60": [
+     0,
+     45
+    ]
+   },
+   "note": "a step below the lookback across the 2h gap and the reset"
+  },
+  {
+   "id": "subq_rate_max",
+   "query": "max_over_time(rate({gc}[15m])[1h:5m])",
+   "steps": [
+    3600
+   ]
+  }
+ ]
+}

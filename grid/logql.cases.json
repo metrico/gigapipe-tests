@@ -1,0 +1,333 @@
+{
+ "range_start_after_d0_s": 21600,
+ "range_end_after_d0_s": 64800,
+ "instant_at_after_d0_s": 43200,
+ "instant_offsets": [
+  0,
+  60,
+  420,
+  1800
+ ],
+ "ranges": {
+  "5m": {
+   "shapes": [
+    [
+     60,
+     0
+    ],
+    [
+     300,
+     60
+    ],
+    [
+     900,
+     720
+    ],
+    [
+     3600,
+     0
+    ],
+    [
+     420,
+     60
+    ]
+   ]
+  },
+  "15m": {
+   "shapes": [
+    [
+     300,
+     60
+    ],
+    [
+     900,
+     1320
+    ],
+    [
+     3600,
+     0
+    ]
+   ]
+  },
+  "1h": {
+   "shapes": [
+    [
+     900,
+     60
+    ],
+    [
+     3600,
+     4020
+    ],
+    [
+     21600,
+     0
+    ]
+   ]
+  },
+  "90s": {
+   "shapes": [
+    [
+     30,
+     0
+    ],
+    [
+     60,
+     15
+    ],
+    [
+     90,
+     0
+    ],
+    [
+     300,
+     90
+    ]
+   ]
+  },
+  "100s": {
+   "shapes": [
+    [
+     60,
+     0
+    ],
+    [
+     300,
+     60
+    ]
+   ]
+  }
+ },
+ "default_ranges": [
+  "5m",
+  "1h"
+ ],
+ "selectors": {
+  "": "{test_id=\"{id}\"}",
+  "c": "{test_id=\"{id}\", l=\"c\"}",
+  "none": "{test_id=\"{id}\", l=\"none\"}",
+  "ac": "{test_id=\"{id}\", l=~\"a|c\"}"
+ },
+ "paths": {
+  "natural": "{sel}{stages}",
+  "rawsql": "{sel} != \"@@never@@\"{stages}",
+  "internal": "{sel} != \"@@never@@\"{stages} | line_format \"{{__line__}}\""
+ },
+ "default_paths": [
+  "natural",
+  "rawsql",
+  "internal"
+ ],
+ "cases": [
+  {
+   "id": "count",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "5m",
+    "15m",
+    "1h"
+   ]
+  },
+  {
+   "id": "count_by_l",
+   "query": "sum by (l) (count_over_time({log} [{r}]))"
+  },
+  {
+   "id": "rate",
+   "query": "rate({log} [{r}])"
+  },
+  {
+   "id": "rate_by_l",
+   "query": "sum by (l) (rate({log} [{r}]))"
+  },
+  {
+   "id": "bytes",
+   "query": "bytes_over_time({log} [{r}])",
+   "check": "shape",
+   "note": "checked by series and timestamps only",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "bytes_rate",
+   "query": "bytes_rate({log} [{r}])",
+   "check": "shape",
+   "note": "checked by series and timestamps only",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "sum_unwrap_by_l",
+   "query": "sum by (l) (sum_over_time({log} | unwrap size [{r}]))",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "rawsql",
+    "internal"
+   ]
+  },
+  {
+   "id": "avg_unwrap",
+   "query": "avg_over_time({log} | unwrap size [{r}])",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "min_unwrap",
+   "query": "min_over_time({log} | unwrap size [{r}])",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "max_unwrap",
+   "query": "max_over_time({log} | unwrap size [{r}])",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "max_unwrap_by_l",
+   "query": "max_over_time({log} | unwrap size [{r}]) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "rawsql",
+    "internal"
+   ]
+  },
+  {
+   "id": "max_unwrap_by_l_offset_7m",
+   "query": "max_over_time({log} | unwrap size [{r}] offset 7m) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "ranges": [
+    "5m",
+    "15m"
+   ]
+  },
+  {
+   "id": "quantile_unwrap",
+   "query": "quantile_over_time(0.9, {log} | unwrap size [{r}])",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "internal"
+   ],
+   "note": "the unwrapped size label stays on the result"
+  },
+  {
+   "id": "quantile_by_l",
+   "query": "quantile_over_time(0.9, {log} | unwrap size [{r}]) by (l)",
+   "stages": " | regexp \"size=(?P<size>[0-9]+)\"",
+   "paths": [
+    "natural",
+    "rawsql",
+    "internal"
+   ]
+  },
+  {
+   "id": "absent_c",
+   "query": "absent_over_time({log:c} [{r}])",
+   "ranges": [
+    "5m",
+    "15m"
+   ]
+  },
+  {
+   "id": "absent_none",
+   "query": "absent_over_time({log:none} [{r}])",
+   "paths": [
+    "natural",
+    "internal"
+   ]
+  },
+  {
+   "id": "absent_ac",
+   "query": "absent_over_time({log:ac} [{r}])",
+   "stages": " |= \"size=1 \"",
+   "ranges": [
+    "5m",
+    "15m",
+    "1h"
+   ]
+  },
+  {
+   "id": "absent_c_offset_7m",
+   "query": "absent_over_time({log:c} [{r}] offset 7m)",
+   "ranges": [
+    "5m",
+    "15m"
+   ]
+  },
+  {
+   "id": "count_offset_7m",
+   "query": "count_over_time({log} [{r}] offset 7m)"
+  },
+  {
+   "id": "count_edge_90s",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "90s"
+   ],
+   "note": "R = 90s puts a 5m-boundary line on T or on T-R, never both"
+  },
+  {
+   "id": "rate_by_l_edge_90s",
+   "query": "sum by (l) (rate({log} [{r}]))",
+   "ranges": [
+    "90s"
+   ]
+  },
+  {
+   "id": "count_off_lattice",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "5m"
+   ],
+   "shapes": {
+    "5m": [
+     [
+      20,
+      0
+     ],
+     [
+      45,
+      7
+     ]
+    ]
+   },
+   "instant_offsets": [
+    7,
+    1234
+   ],
+   "note": "step 20s and the instants are off the 15s lattice; step 45s is on it with w = 15s"
+  },
+  {
+   "id": "count_100s",
+   "query": "count_over_time({log} [{r}])",
+   "ranges": [
+    "100s"
+   ],
+   "note": "R off the 15s lattice"
+  },
+  {
+   "id": "count_offset_7s",
+   "query": "count_over_time({log} [{r}] offset 7s)",
+   "ranges": [
+    "5m"
+   ],
+   "note": "offset off the 15s lattice"
+  }
+ ]
+}

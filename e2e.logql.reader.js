@@ -659,7 +659,8 @@ _itShouldStdReq({
     deps: ['should send newrelic']
 })
 */
-_itShouldMatrixReq('topk', `topk(1, rate({test_id="${testID}"}[5s]))`)
+// topk and bottomk start one step in, where no two rates tie.
+_itShouldMatrixReq({ name: 'topk', req: `topk(1, rate({test_id="${testID}"}[5s]))`, start: start + 2000 })
 
 _itShouldMatrixReq('topk + sum',
     `topk(1, sum(count_over_time({test_id="${testID}"}[5s])) by (test_id))`)
@@ -670,7 +671,7 @@ _itShouldMatrixReq('topk + unwrap',
 _itShouldMatrixReq('topk + unwrap + sum',
     `topk(1, sum(sum_over_time({test_id=~"${testID}_json"} | json f="int_val" | unwrap f [5s])) by (test_id))`)
 
-_itShouldMatrixReq('bottomk', `bottomk(1, rate({test_id="${testID}"}[5s]))`)
+_itShouldMatrixReq({ name: 'bottomk', req: `bottomk(1, rate({test_id="${testID}"}[5s]))`, start: start + 2000 })
 
 _itShouldMatrixReq('quantile',
     `quantile_over_time(0.5, {test_id=~"${testID}_json"} | json f="int_val" | unwrap f [5s]) by (test_id)`)
