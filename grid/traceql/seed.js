@@ -260,4 +260,11 @@ const zipkinBatches = (from, prefix, testId, ts = traces()) => {
   return batches
 }
 
-module.exports = { SECOND, MINUTE, HOUR, WINDOW, SUITE, window, traces, ids, zipkinBatches }
+// spanRange returns a (from, to] range, relative to FROM, that holds the start
+// of every seeded span.
+const spanRange = () => {
+  const starts = traces().flatMap(t => t.spans.map(s => s.start))
+  return { from: Math.min(...starts) - SECOND, to: Math.max(...starts) + SECOND }
+}
+
+module.exports = { SECOND, MINUTE, HOUR, WINDOW, SUITE, window, traces, spanRange, ids, zipkinBatches }

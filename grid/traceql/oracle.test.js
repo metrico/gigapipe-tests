@@ -63,6 +63,13 @@ describe('traceql grid seed', () => {
     expect(new Set(timed.map(s => s.start)).size).toEqual(timed.length)
   })
 
+  it('gives a range that holds every seeded span, the cycle fixtures included', () => {
+    const { from, to } = seed.spanRange()
+    const starts = Object.values(ts).flatMap(t => t.spans.map(s => s.start))
+    expect(starts.filter(start => start <= from || start > to)).toEqual([])
+    expect(from).toBeLessThan(ts.selfparent.spans[0].start)
+  })
+
   it('holds the nested-set fixtures after every case range', () => {
     const t = ts.nested
     const by = Object.fromEntries(t.spans.map(s => [s.name, s]))

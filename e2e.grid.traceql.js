@@ -29,8 +29,8 @@ const AUTOCOMPLETE = autocompleteRuns(FROM)
 // its range holds every seeded span, limit every trace and spss every span.
 const NESTED_SET_PROBE = {
   query: `{ .test_id = "${TEST_ID}" } | select(nestedSetLeft, nestedSetRight, nestedSetParent)`,
-  from: FROM - seed.HOUR - seed.SECOND,
-  to: FROM + seed.WINDOW + 16 * seed.MINUTE,
+  from: FROM + seed.spanRange().from,
+  to: FROM + seed.spanRange().to,
   limit: seed.traces().length,
   spss: Math.max(...seed.traces().map(t => t.spans.length))
 }
