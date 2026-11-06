@@ -400,6 +400,8 @@ const EXPECTED = {
   tr_chain9_skip_shallow_operands: {},
   tr_chain9_not_nested: { chain9: [['c9_8', 'c9_0'], 2], mixed: 6 },
   tr_empty_operands: { chain9: [['c9_7', 'c9_6', 'c9_5'], 7], chain8: 7, fanout: 70, mixed: 5, orphan: 1, tworoots: 2, mixed2: 5, attrs: 7 },
+  tr_chain9_skip_ancestor: { chain8: [['c8_6', 'c8_5', 'c8_4'], 7] },
+  tr_chain9_skip_union_descendant: { chain8: 8 },
   // sp_self is its own parent. cy_1, cy_2 and cy_3 form a cycle with cy_below
   // under it; cy_ok is the child of cy_root. .a: sp_self, cy_root, cy_1, cy_3.
   // .b: sp_self, cy_ok, cy_2, cy_3, cy_below.

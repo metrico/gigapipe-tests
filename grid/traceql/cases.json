@@ -4195,6 +4195,74 @@
       }
     },
     {
+      "id": "tr_chain9_skip_ancestor",
+      "note": "<< skips chain9 and keeps chain8.",
+      "query": "{ .shape = \"chain\" } << { .shape = \"chain\" }",
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "<<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".shape"
+                },
+                "rhs": {
+                  "str": "chain"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".shape"
+                },
+                "rhs": {
+                  "str": "chain"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "tr_chain9_skip_union_descendant",
+      "note": "&>> skips chain9 and keeps chain8.",
+      "query": "{ .shape = \"chain\" } &>> { .shape = \"chain\" }",
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&>>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".shape"
+                },
+                "rhs": {
+                  "str": "chain"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".shape"
+                },
+                "rhs": {
+                  "str": "chain"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
       "id": "tr_chain_path",
       "note": "A chain of >> is an ancestor path.",
       "query": "{ .chain = \"8\" && .depth = \"1\" } >> { .chain = \"8\" && .depth = \"3\" } >> { .chain = \"8\" && .depth = \"6\" }",
