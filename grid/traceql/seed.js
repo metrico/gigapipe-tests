@@ -1,4 +1,4 @@
-// TraceQL grid seed: the nine fixture shapes as named spans. Every time is in
+// TraceQL grid seed: the ten fixture shapes as named spans. Every time is in
 // milliseconds relative to FROM, the query window is (FROM, TO], and FROM is a
 // whole second. Generators are pure functions of their arguments.
 
@@ -7,6 +7,9 @@ const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 
 const WINDOW = 30 * MINUTE
+
+// CYCLES is when the cycle fixtures start, out of every other case's range.
+const CYCLES = -80 * MINUTE
 
 // Attributes on every seeded span.
 const SUITE = { suite: 'traceql-grid' }
@@ -155,6 +158,23 @@ const traces = () => {
     spans: [
       span('el_a', null, { shape: 'edge', role: 'root' }),
       span('el_b', 'el_a', { shape: 'edge', role: 'late' }, { start: WINDOW + 5 * MINUTE })
+    ]
+  })
+
+  // 10. Parent cycles: a self-parent span, and a 3-span cycle with a child below
+  // it in a trace with a real root.
+  const cyclic = (name, parent, attrs, i) => span(name, parent, { shape: 'cycle', ...attrs }, { start: CYCLES + i * SECOND })
+  out.push({ name: 'selfparent', shape: 'cycle', spans: [cyclic('sp_self', 'sp_self', { a: '1', b: '1' }, 0)] })
+  out.push({
+    name: 'cycle',
+    shape: 'cycle',
+    spans: [
+      cyclic('cy_root', null, { a: '1' }, 1),
+      cyclic('cy_ok', 'cy_root', { b: '1' }, 2),
+      cyclic('cy_1', 'cy_3', { a: '1' }, 3),
+      cyclic('cy_2', 'cy_1', { b: '1' }, 4),
+      cyclic('cy_3', 'cy_2', { a: '1', b: '1' }, 5),
+      cyclic('cy_below', 'cy_2', { b: '1' }, 6)
     ]
   })
 

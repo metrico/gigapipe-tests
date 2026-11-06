@@ -1278,7 +1278,7 @@
     },
     {
       "id": "hop_child_all",
-      "note": "> between every grid span, on every seed shape.",
+      "note": "> between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } > { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1313,7 +1313,7 @@
     },
     {
       "id": "hop_parent_all",
-      "note": "< between every grid span, on every seed shape.",
+      "note": "< between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } < { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1348,7 +1348,7 @@
     },
     {
       "id": "hop_sibling_all",
-      "note": "~ between every grid span, on every seed shape.",
+      "note": "~ between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } ~ { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1383,7 +1383,7 @@
     },
     {
       "id": "hop_not_child_all",
-      "note": "!> between every grid span, on every seed shape.",
+      "note": "!> between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } !> { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1418,7 +1418,7 @@
     },
     {
       "id": "hop_not_parent_all",
-      "note": "!< between every grid span, on every seed shape.",
+      "note": "!< between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } !< { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1453,7 +1453,7 @@
     },
     {
       "id": "hop_not_sibling_all",
-      "note": "!~ between every grid span, on every seed shape.",
+      "note": "!~ between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } !~ { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1488,7 +1488,7 @@
     },
     {
       "id": "hop_union_child_all",
-      "note": "&> between every grid span, on every seed shape.",
+      "note": "&> between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } &> { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1523,7 +1523,7 @@
     },
     {
       "id": "hop_union_parent_all",
-      "note": "&< between every grid span, on every seed shape.",
+      "note": "&< between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } &< { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -1558,7 +1558,7 @@
     },
     {
       "id": "hop_union_sibling_all",
-      "note": "&~ between every grid span, on every seed shape.",
+      "note": "&~ between every grid span, on every shape in the default window.",
       "query": "{ .suite = \"traceql-grid\" } &~ { .suite = \"traceql-grid\" }",
       "spss": 100,
       "ast": {
@@ -2915,7 +2915,7 @@
     },
     {
       "id": "tr_descendant_all",
-      "note": ">> between every span of every shape that resolves under the round limit.",
+      "note": ">> between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } >> { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -2974,7 +2974,7 @@
     },
     {
       "id": "tr_ancestor_all",
-      "note": "<< between every span of every shape that resolves under the round limit.",
+      "note": "<< between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } << { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -3033,7 +3033,7 @@
     },
     {
       "id": "tr_not_descendant_all",
-      "note": "!>> between every span of every shape that resolves under the round limit.",
+      "note": "!>> between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } !>> { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -3092,7 +3092,7 @@
     },
     {
       "id": "tr_not_ancestor_all",
-      "note": "!<< between every span of every shape that resolves under the round limit.",
+      "note": "!<< between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } !<< { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -3151,7 +3151,7 @@
     },
     {
       "id": "tr_union_descendant_all",
-      "note": "&>> between every span of every shape that resolves under the round limit.",
+      "note": "&>> between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } &>> { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -3210,7 +3210,7 @@
     },
     {
       "id": "tr_union_ancestor_all",
-      "note": "&<< between every span of every shape that resolves under the round limit.",
+      "note": "&<< between every span of every shape in the default window that resolves under the round limit.",
       "query": "{ .shape != \"chain\" || .chain = \"8\" } &<< { .shape != \"chain\" || .chain = \"8\" }",
       "spss": 100,
       "ast": {
@@ -3617,6 +3617,576 @@
                 },
                 "rhs": {
                   "str": "9"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_descendant",
+      "note": ">> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } >> { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": ">>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_not_descendant",
+      "note": "!>> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } !>> { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "!>>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_ancestor",
+      "note": "<< on a self-parent span and a cycle under a real root. .b is on the left because cy_root would match without the whole-trace skip.",
+      "query": "{ .b = \"1\" } << { .a = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "<<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_not_ancestor",
+      "note": "!<< on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } !<< { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "!<<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_union_descendant",
+      "note": "&>> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } &>> { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&>>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_union_ancestor",
+      "note": "&<< on a self-parent span and a cycle under a real root. .b is on the left because cy_root and cy_ok would match without the whole-trace skip.",
+      "query": "{ .b = \"1\" } &<< { .a = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&<<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_child",
+      "note": "> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } > { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": ">",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_not_child",
+      "note": "!> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } !> { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "!>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_union_child",
+      "note": "&> on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } &> { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&>",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_parent",
+      "note": "< on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } < { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_not_parent",
+      "note": "!< on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } !< { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "!<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_union_parent",
+      "note": "&< on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } &< { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&<",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_sibling",
+      "note": "~ on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } ~ { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "~",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_not_sibling",
+      "note": "!~ on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } !~ { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "!~",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "cy_union_sibling",
+      "note": "&~ on a self-parent span and a cycle under a real root.",
+      "query": "{ .a = \"1\" } &~ { .b = \"1\" }",
+      "range": {
+        "from": -4860000,
+        "to": -4740000
+      },
+      "ast": {
+        "pipeline": [
+          {
+            "spansetOp": "&~",
+            "lhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".a"
+                },
+                "rhs": {
+                  "str": "1"
+                }
+              }
+            },
+            "rhs": {
+              "selector": {
+                "op": "=",
+                "lhs": {
+                  "attr": ".b"
+                },
+                "rhs": {
+                  "str": "1"
                 }
               }
             }

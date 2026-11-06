@@ -1,5 +1,5 @@
 // TraceQL oracle self-check, run without a gigapipe stack: the seed holds the
-// nine fixture shapes, every case's query prints from its AST, and the oracle
+// ten fixture shapes, every case's query prints from its AST, and the oracle
 // reproduces hand-checked results for every search, metrics and autocomplete
 // case.
 
@@ -21,7 +21,7 @@ describe('traceql grid seed', () => {
   const ts = byName(seed.traces())
   const children = (t, parent) => t.spans.filter(s => s.parent === parent)
 
-  it('holds the nine fixture shapes', () => {
+  it('holds the ten fixture shapes', () => {
     const depth = (t) => {
       const parent = Object.fromEntries(t.spans.map(s => [s.name, s.parent]))
       return Math.max(...t.spans.map(s => {
@@ -47,6 +47,9 @@ describe('traceql grid seed', () => {
     const start = (name) => seed.traces().flatMap(t => t.spans).find(s => s.name === name).start
     expect([start('ec_root'), start('ec_mid')]).toEqual([-seed.HOUR, -10 * seed.MINUTE])
     expect([start('eb_from'), start('eb_to'), start('el_b')]).toEqual([0, seed.WINDOW, seed.WINDOW + 5 * seed.MINUTE])
+    const parents = (t) => Object.fromEntries(t.spans.map(s => [s.name, s.parent]))
+    expect(parents(ts.selfparent)).toEqual({ sp_self: 'sp_self' })
+    expect(parents(ts.cycle)).toEqual({ cy_root: null, cy_ok: 'cy_root', cy_1: 'cy_3', cy_2: 'cy_1', cy_3: 'cy_2', cy_below: 'cy_2' })
   })
 
   it('names every span once, links parents within the trace and gives distinct start times', () => {
@@ -72,7 +75,7 @@ describe('traceql grid seed', () => {
     expect(batches).toHaveLength(2)
     const all = batches.flat()
     expect(all.filter(z => z.parentId === undefined).map(z => z.name).sort())
-      .toEqual(['am_root', 'c8_0', 'c9_0', 'eb_root', 'ec_root', 'el_a', 'fan_root', 'mix2_root', 'mix_root', 'orph_root', 'two_r1', 'two_r2'])
+      .toEqual(['am_root', 'c8_0', 'c9_0', 'cy_root', 'eb_root', 'ec_root', 'el_a', 'fan_root', 'mix2_root', 'mix_root', 'orph_root', 'two_r1', 'two_r2'])
     expect(batches[1].map(z => z.name)).toEqual(['mix2_root'])
     expect(all.find(z => z.name === 'eb_from').timestamp).toEqual(FROM * 1000)
   })
@@ -397,6 +400,24 @@ const EXPECTED = {
   tr_chain9_skip_shallow_operands: {},
   tr_chain9_not_nested: { chain9: [['c9_8', 'c9_0'], 2], mixed: 6 },
   tr_empty_operands: { chain9: [['c9_7', 'c9_6', 'c9_5'], 7], chain8: 7, fanout: 70, mixed: 5, orphan: 1, tworoots: 2, mixed2: 5, attrs: 7 },
+  // sp_self is its own parent. cy_1, cy_2 and cy_3 form a cycle with cy_below
+  // under it; cy_ok is the child of cy_root. .a: sp_self, cy_root, cy_1, cy_3.
+  // .b: sp_self, cy_ok, cy_2, cy_3, cy_below.
+  cy_descendant: { cycle: [['cy_ok'], 1] },
+  cy_not_descendant: { selfparent: [['sp_self'], 1], cycle: [['cy_below', 'cy_3', 'cy_2'], 3] },
+  cy_ancestor: {},
+  cy_not_ancestor: {},
+  cy_union_descendant: {},
+  cy_union_ancestor: {},
+  cy_child: { cycle: [['cy_2', 'cy_ok'], 2] },
+  cy_not_child: { selfparent: [['sp_self'], 1], cycle: [['cy_below', 'cy_3'], 2] },
+  cy_union_child: { cycle: [['cy_2', 'cy_1', 'cy_ok'], 4] },
+  cy_parent: { cycle: [['cy_3', 'cy_2'], 2] },
+  cy_not_parent: { selfparent: [['sp_self'], 1], cycle: [['cy_below', 'cy_ok'], 2] },
+  cy_union_parent: { cycle: [['cy_3', 'cy_2', 'cy_1'], 3] },
+  cy_sibling: { cycle: [['cy_below'], 1] },
+  cy_not_sibling: { selfparent: [['sp_self'], 1], cycle: [['cy_3', 'cy_2', 'cy_ok'], 3] },
+  cy_union_sibling: { cycle: [['cy_below', 'cy_3'], 2] },
   tr_chain9_no_candidate: { chain9: 9 },
   tr_chain_path: { chain8: [['c8_6'], 1] },
   tr_chain_group: { chain8: [['c8_2'], 1] },
