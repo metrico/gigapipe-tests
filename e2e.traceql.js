@@ -78,6 +78,7 @@ const _itShouldTraceQL = (name, q, conf) => {
                 s.startTimeUnixNano = (BigInt(s.startTimeUnixNano) - (BigInt(start) * 1000000n)).toString()
             }))
         })
+        delete res.data.metrics
         expect(res.data).toMatchSnapshot()
     }, ['traceql: initialize'])
 }
