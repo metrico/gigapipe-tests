@@ -21,7 +21,7 @@ describe('traceql grid seed', () => {
   const ts = byName(seed.traces())
   const children = (t, parent) => t.spans.filter(s => s.parent === parent)
 
-  it('holds the ten fixture shapes', () => {
+  it('holds the fixture shapes', () => {
     const depth = (t) => {
       const parent = Object.fromEntries(t.spans.map(s => [s.name, s.parent]))
       return Math.max(...t.spans.map(s => {
@@ -1408,6 +1408,18 @@ describe('traceql nested-set oracle', () => {
       ns_cyc1: [0, 0, 0],
       ns_cyc2: [0, 0, 0],
       ns_cyc_c: [0, 0, 0]
+    })
+  })
+
+  it('numbers only the spans a root reaches in the cycle fixtures', () => {
+    expect(numbers('selfparent')).toEqual({ sp_self: [0, 0, 0] })
+    expect(numbers('cycle')).toEqual({
+      cy_root: [1, 4, -1],
+      cy_ok: [2, 3, 1],
+      cy_1: [0, 0, 0],
+      cy_2: [0, 0, 0],
+      cy_3: [0, 0, 0],
+      cy_below: [0, 0, 0]
     })
   })
 
