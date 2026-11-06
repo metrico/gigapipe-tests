@@ -5,7 +5,7 @@
 
 const seed = require('./seed')
 const oracle = require('./oracle')
-const { metrics, labelKey, histogramBucket, sampleFraction, exemplarLimit, thin } = require('./metrics')
+const { metrics, labelKey, histogramBucket, sampleFraction, sampleScale, exemplarLimit, thin } = require('./metrics')
 const { cityHash64, sampleThreshold } = require('./cityhash')
 const { autocomplete, selectsEverySpan } = require('./autocomplete')
 const { print } = require('./ast')
@@ -1089,14 +1089,16 @@ const EXPECTED_METRICS = {
   m_by_labels: { 'span.lvl=1': { 2: 4 }, 'span.lvl=2': { 2: 6 } },
   m_by_grouped_error: oracle.GROUPED,
   m_select: count({ 2: 6 }),
-  // The fanout spans whose span id hashes below 2^63: 31 of 71.
-  m_sample_span: count({ 0: 11, 1: 17, 2: 3 }),
+  // The fanout spans whose span id hashes below 2^63, 31 of 71, counted twice
+  // under sample=0.5.
+  m_sample_span: count({ 0: 22, 1: 34, 2: 6 }),
   // Traces whose id hashes below 2^63: chain8, mixed, rootless, mixed2,
   // attrs and edge_late. Children of mixed (5), mixed2 (5) and attrs (7);
-  // rootless reaches no root and el_b starts out of range.
-  m_sample_one_hop: count({ 2: 17 }),
+  // rootless reaches no root and el_b starts out of range. Counted twice.
+  m_sample_one_hop: count({ 2: 34 }),
   // mixed (6), mixed2 (6) and attrs (8); rootless (3) and edge_late (1) fail.
-  m_sample_agg: count({ 2: 20 }),
+  // Counted twice.
+  m_sample_agg: count({ 2: 40 }),
   m_sample_ignored: count({ 2: 6 }),
   m_exemplars_n: FANOUT_BY_10S,
   m_exemplars_false: FANOUT_BY_10S,
@@ -1110,7 +1112,8 @@ const EXPECTED_METRICS = {
     '__bucket=0.033554432': { 20: 2, 30: 5, 40: 5, 50: 4, 60: 5, 70: 5, 80: 4, 90: 5, 100: 5, 110: 4, 120: 5, 130: 2 },
     '__bucket=0.067108864': { 30: 2, 40: 2, 50: 2, 60: 2, 70: 2, 80: 2, 90: 2, 100: 2, 110: 2, 120: 2 }
   },
-  m_exemplars_sampled: count({ 20: 2, 30: 5, 40: 2, 50: 2, 60: 2, 70: 4, 80: 3, 90: 3, 100: 2, 110: 3, 120: 3 }),
+  // Counted twice under sample=0.5.
+  m_exemplars_sampled: count({ 20: 4, 30: 10, 40: 4, 50: 4, 60: 4, 70: 8, 80: 6, 90: 6, 100: 4, 110: 6, 120: 6 }),
   // The mixed tree's left values; its right values average 50/6.
   m_ns_by_left: Object.fromEntries([1, 2, 3, 5, 8, 9].map(n => [`nestedSetLeft=int ${n}`, { 2: 1 }])),
   m_ns_avg_right: { '__name__=avg_over_time': { 2: 50 / 6 } },
@@ -1228,6 +1231,16 @@ describe('traceql sample and exemplars hints', () => {
     expect(exemplarLimit([['exemplars', 'true'], ['exemplars', '3']])).toEqual(3)
     expect(exemplarLimit([['exemplars', 'false']])).toEqual(0)
     expect(exemplarLimit([['exemplars', '1.5']])).toBeNull()
+  })
+  it('scales a sampled volume by 1/fraction and leaves other values', () => {
+    const scale = (fn, fraction) => sampleScale({ fn }, fraction)
+    for (const fn of ['count_over_time', 'rate', 'sum_over_time', 'histogram_over_time', 'compare']) {
+      expect(scale(fn, 0.25)).toEqual(4)
+      expect(scale(fn, null)).toEqual(1)
+    }
+    for (const fn of ['avg_over_time', 'min_over_time', 'max_over_time', 'quantile_over_time']) {
+      expect(scale(fn, 0.25)).toEqual(1)
+    }
   })
   it('thins exemplars evenly', () => {
     const ten = [...Array(10).keys()]
