@@ -211,10 +211,9 @@ const ATTRS_NEWEST = ['am_dur', 'am_bool', 'am_str']
 // Hand-checked results per case: trace -> [listed spans, matched,
 // attributes?, selected?], or just matched when the listed spans are the
 // trace's spss newest, or sets(...) for a trace with several spansets;
-// UNRESOLVED when ancestry does not resolve within the round limit, GROUPED
-// for a spanset operator over grouped spansets. Attributes map a name to its
-// OTLP value, selected a listed span to its select() values (the span name
-// at `#name`); both default to none.
+// GROUPED for a spanset operator over grouped spansets. Attributes map a name
+// to its OTLP value, selected a listed span to its select() values (the span
+// name at `#name`); both default to none.
 const EXPECTED = {
   all: NEWEST,
   all_limit_3: { edge_bound: NEWEST.edge_bound, edge_late: NEWEST.edge_late, edge_chain: NEWEST.edge_chain },
@@ -394,10 +393,10 @@ const EXPECTED = {
   tr_chain8_descendants: { chain8: 7 },
   tr_chain8_ancestors: { chain8: [['c8_0', 'c8_1', 'c8_2', 'c8_3', 'c8_4', 'c8_5', 'c8_6'], 7] },
   tr_chain8_union_ancestor: { chain8: [['c8_7', 'c8_3'], 2] },
-  tr_chain9_error: oracle.UNRESOLVED,
-  tr_chain9_error_shallow_operands: oracle.UNRESOLVED,
-  tr_chain9_error_nested: oracle.UNRESOLVED,
-  tr_empty_operands_error: oracle.UNRESOLVED,
+  tr_chain9_deep_unreachable: { chain9: [['c9_7', 'c9_6', 'c9_5'], 7] },
+  tr_chain9_skip_shallow_operands: {},
+  tr_chain9_not_nested: { chain9: [['c9_8', 'c9_0'], 2], mixed: 6 },
+  tr_empty_operands: { chain9: [['c9_7', 'c9_6', 'c9_5'], 7], chain8: 7, fanout: 70, mixed: 5, orphan: 1, tworoots: 2, mixed2: 5, attrs: 7 },
   tr_chain9_no_candidate: { chain9: 9 },
   tr_chain_path: { chain8: [['c8_6'], 1] },
   tr_chain_group: { chain8: [['c8_2'], 1] },
@@ -459,7 +458,7 @@ const EXPECTED = {
   agg_chain8_depth: { chain8: [['c8_7', 'c8_6', 'c8_5'], 7, { 'max(.depth)': intAttr(7), 'min(.depth)': intAttr(1) }] },
   agg_paren_operand: { mixed: [MIXED_NEWEST, 6] },
   agg_paren_operand_fails: {},
-  agg_unresolved: oracle.UNRESOLVED,
+  agg_unresolved: { chain9: [['c9_7', 'c9_6', 'c9_5'], 7, { 'count()': intAttr(7) }] },
   fe_attr_eq_attr: { attrs: [['am_str', 'am_int'], 2] },
   fe_attr_ne_attr: { attrs: [['am_bool', 'am_int_neg'], 2] },
   fe_attr_lt_attr: { attrs: [['am_int_neg'], 1] },
@@ -521,7 +520,7 @@ const EXPECTED = {
   nr_paren_operand: { mixed: [['mix_b1', 'mix_a1'], 2, { 'count()': intAttr(6) }] },
   nr_paren_stage: { mixed: [MIXED_NEWEST, 3, { 'count()': intAttr(6), 'max(duration)': durationAttr('45ms') }] },
   nr_bare_count_then_stage: { chain8: [['c8_7'], 1, { 'count()': intAttr(8) }] },
-  nr_unresolved_full_tree: oracle.UNRESOLVED,
+  nr_unresolved_full_tree: {},
   nr_and: {},
   nr_or: { mixed: [['mix_b1', 'mix_a1'], 2], mixed2: [['mix2_b1', 'mix2_a1'], 2] },
   // by() and coalesce(). The mixed trees' svc is gateway on root, api on a
@@ -723,16 +722,9 @@ describe('traceql oracle rules', () => {
     const desc = (n) => ({ pipeline: [{ spansetOp: '>>', lhs: { selector: chain(n) }, rhs: { selector: chain(n) } }] })
     expect(oracle.ROUNDS).toEqual(3)
     expect(oracle.search(desc(8), spans, opts)).toHaveLength(1)
-    expect(oracle.search(desc(9), spans, opts)).toEqual(oracle.UNRESOLVED)
+    expect(oracle.search(desc(9), spans, opts)[0].matched).toEqual(7)
     expect(oracle.search(desc(9), spans, { ...opts, rounds: 4 })[0].matched).toEqual(8)
-    expect(oracle.search(desc(8), spans, { ...opts, rounds: 2 })).toEqual(oracle.UNRESOLVED)
-  })
-
-  it('treats a parent cycle as unresolved', () => {
-    const cyclic = spans.map(s => s.name === 'mix_root' ? { ...s, parentId: spans.find(p => p.name === 'mix_a1').spanId } : s)
-    const q = { pipeline: [{ spansetOp: '<<', lhs: sel(named('mix_a1')).pipeline[0], rhs: sel(named('mix_a')).pipeline[0] }] }
-    expect(oracle.search(q, spans, opts)).toHaveLength(1)
-    expect(oracle.search(q, cyclic, opts)).toEqual(oracle.UNRESOLVED)
+    expect(oracle.search(desc(8), spans, { ...opts, rounds: 2 })[0].matched).toEqual(3)
   })
 
   it('evaluates only the landed pushes', () => {
@@ -815,13 +807,6 @@ describe('traceql result diff', () => {
       'c extra: w matched 1'
     ])
   })
-  it('expects the unresolved-ancestry error', () => {
-    const err = { status: 500, error: 'TraceQL structural query: a trace is deeper than the round limit of 3 rounds (8 spans) or its parent links form a cycle; raise GIGAPIPE_TRACEQL_ANCESTRY_ROUNDS' }
-    expect(diff(err, oracle.UNRESOLVED)).toEqual([])
-    expect(diff({ status: 500, error: 'boom' }, oracle.UNRESOLVED)).toEqual(['error 500: boom, want an unresolved-ancestry error'])
-    expect(diff([t('a', ['x'], 1)], oracle.UNRESOLVED)).toEqual(['want an unresolved-ancestry error, got 1 traces'])
-    expect(diff(err, [])).toEqual([`unexpected error 500: ${err.error}`])
-  })
   it('compares attributes in order, doubles within rounding', () => {
     const a = (trace, attributes) => ({ ...t(trace, ['x'], 1), attributes })
     const want = [a('a', { 'count()': { intValue: '3' }, 'avg(.v)': { doubleValue: 0.1 + 0.2 } })]
@@ -848,7 +833,6 @@ describe('traceql result diff', () => {
     expect(diff(err, oracle.GROUPED)).toEqual([])
     expect(diff({ status: 400, error: 'boom' }, oracle.GROUPED))
       .toEqual([`error 400: boom, want the error "${oracle.GROUPED.error}"`])
-    expect(diff(err, oracle.UNRESOLVED)).toEqual([`error 400: ${err.error}, want an unresolved-ancestry error`])
   })
 })
 
@@ -907,7 +891,7 @@ const EXPECTED_METRICS = {
   m_boundary: count({ 3: 1, 30: 1 }),
   m_boundary_sibling: count({ 3: 1, 30: 1 }),
   m_uncapped: count({ 0: 21, 1: 40, 2: 9 }),
-  m_unresolved: oracle.UNRESOLVED,
+  m_unresolved: count({ 0: 7 }),
   m_agg_gate: count({ 2: 6 }),
   m_agg_gate_fails: {},
   m_agg_bare: count({ 0: 22, 1: 40, 2: 9 }),
@@ -1107,11 +1091,6 @@ describe('traceql metrics diff', () => {
     expect(metricsDiff(cmp, [{ labels: { __meta_type: 'selection', svc: 'db' }, value: 3 }], { kind: 'compare' }))
       .toEqual(['{__meta_type=selection,svc=db} value 2, want 3'])
   })
-  it('expects the unresolved-ancestry error', () => {
-    const err = fromMetricsResponse({ status: 500, data: { error: 'TraceQL structural query: a trace is deeper than the round limit of 3 rounds (8 spans) or its parent links form a cycle; raise GIGAPIPE_TRACEQL_ANCESTRY_ROUNDS' } }, 'range')
-    expect(metricsDiff(err, oracle.UNRESOLVED, { kind: 'range' })).toEqual([])
-    expect(metricsDiff([], oracle.UNRESOLVED, { kind: 'range' })).toEqual(['want an unresolved-ancestry error, got 0 series'])
-  })
 })
 
 // Hand-checked autocomplete results: the exact suggestions, or {superset} for
@@ -1140,7 +1119,7 @@ const EXPECTED_AUTOCOMPLETE = {
   ac_values_or_structural: ['mix2_a', 'mix2_b', 'mix_a', 'mix_b', 'rl_a'],
   ac_values_limit: ['fan_c00', 'fan_c00_g0', 'fan_c00_g1'],
   ac_values_range: ['eb_from', 'eb_root', 'ec_mid'],
-  ac_tags_unresolved: oracle.UNRESOLVED,
+  ac_tags_unresolved: ['chain', 'depth', ...SPAN_KEYS],
   ac_values_agg: ['mix_a1', 'mix_a2', 'mix_b1'],
   ac_values_field: ['am_int', 'am_str'],
   ac_values_narrowed: ['mix2_a1', 'mix2_a2', 'mix2_b1', 'mix_a1', 'mix_a2', 'mix_b1'],
@@ -1191,10 +1170,5 @@ describe('traceql autocomplete diff', () => {
     expect(autocompleteDiff(['a', 'c'], { values: ['a', 'b'], superset: false })).toEqual(['missing b', 'extra c'])
     expect(autocompleteDiff(['a', 'b', 'c'], { values: ['a', 'b'], superset: true })).toEqual([])
     expect(autocompleteDiff(['a', 'a'], { values: ['a'], superset: false })).toEqual(['duplicate suggestions: a,a'])
-  })
-  it('expects the unresolved-ancestry error', () => {
-    const err = fromAutocompleteResponse({ status: 500, data: { error: 'TraceQL structural query: a trace is deeper than the round limit of 3 rounds (8 spans) or its parent links form a cycle; raise GIGAPIPE_TRACEQL_ANCESTRY_ROUNDS' } }, true)
-    expect(autocompleteDiff(err, oracle.UNRESOLVED)).toEqual([])
-    expect(autocompleteDiff([], oracle.UNRESOLVED)).toEqual(['want an unresolved-ancestry error, got 0 suggestions'])
   })
 })

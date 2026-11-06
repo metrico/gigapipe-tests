@@ -3419,8 +3419,8 @@
       }
     },
     {
-      "id": "tr_chain9_error",
-      "note": "The 9-span chain is deeper than R=3 resolves, so the query fails.",
+      "id": "tr_chain9_deep_unreachable",
+      "note": "The span past the round limit acts like an orphan; the shallower spans match.",
       "query": "{ .chain = \"9\" && .depth = \"0\" } >> { .chain = \"9\" }",
       "ast": {
         "pipeline": [
@@ -3465,8 +3465,8 @@
       }
     },
     {
-      "id": "tr_chain9_error_shallow_operands",
-      "note": "The guard covers every span of a candidate trace, not only the operands.",
+      "id": "tr_chain9_skip_shallow_operands",
+      "note": "<< skips the whole trace although both operands resolve.",
       "query": "{ .chain = \"9\" && .depth = \"1\" } << { .chain = \"9\" && .depth = \"0\" }",
       "ast": {
         "pipeline": [
@@ -3523,8 +3523,8 @@
       }
     },
     {
-      "id": "tr_chain9_error_nested",
-      "note": "An unresolved operand fails the whole query.",
+      "id": "tr_chain9_not_nested",
+      "note": "!>> returns the root and the span past the round limit; || keeps the other side.",
       "query": "({ .chain = \"9\" } !>> { .chain = \"9\" }) || { .shape = \"mixed\" }",
       "ast": {
         "pipeline": [
@@ -3573,8 +3573,8 @@
       }
     },
     {
-      "id": "tr_empty_operands_error",
-      "note": "{} operands make the 9-span chain a candidate.",
+      "id": "tr_empty_operands",
+      "note": "{} operands make the 9-span chain a candidate; its deepest span is unreachable.",
       "query": "{} >> {}",
       "ast": {
         "pipeline": [
@@ -5448,7 +5448,7 @@
     },
     {
       "id": "agg_unresolved",
-      "note": "Unresolved ancestry errors through a scalar filter.",
+      "note": "Unreachable spans do not count in a scalar filter.",
       "query": "{ .chain = \"9\" } >> { .chain = \"9\" } | count() > 1",
       "ast": {
         "pipeline": [
@@ -7493,8 +7493,8 @@
     },
     {
       "id": "nr_unresolved_full_tree",
-      "note": "Ancestry reads the whole tree: c9_8 is 8 links from the root although it is the only candidate.",
-      "query": "{ .chain = \"9\" && .depth = \"8\" } | {} >> {}",
+      "note": "Ancestry reads the whole tree: c9_8 is 8 links from the root, so !<< skips the trace although c9_8 is its only operand.",
+      "query": "{ .chain = \"9\" && .depth = \"8\" } | {} !<< {}",
       "ast": {
         "pipeline": [
           {
@@ -7521,7 +7521,7 @@
             }
           },
           {
-            "spansetOp": ">>",
+            "spansetOp": "!<<",
             "lhs": {
               "selector": null
             },
@@ -10005,7 +10005,7 @@
     },
     {
       "id": "m_unresolved",
-      "note": "Metrics fail like search when ancestry does not resolve.",
+      "note": "Metrics count the spans search returns: the unreachable span does not count.",
       "query": "{ .chain = \"9\" && .depth = \"0\" } >> { .chain = \"9\" } | count_over_time()",
       "ast": {
         "pipeline": [
@@ -11334,7 +11334,7 @@
     },
     {
       "id": "ac_tags_unresolved",
-      "note": "Autocomplete surfaces the unresolved-ancestry error like search.",
+      "note": "Autocomplete suggests from the spans search returns.",
       "query": "{ .chain = \"9\" } >> { .chain = \"9\" }",
       "ast": {
         "pipeline": [

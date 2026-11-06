@@ -10,14 +10,9 @@ const DEFAULT_SPSS = 3
 // to 2^ROUNDS spans deep.
 const ROUNDS = 3
 
-// UNRESOLVED is the result of a search that hits the ancestry round limit.
-const UNRESOLVED = { error: 'unresolved ancestry' }
-
 // GROUPED is the result of a query with a spanset operator over grouped
 // spansets: gigapipe rejects it before evaluation.
 const GROUPED = { error: 'spanset operators are not supported for multiple spansets per trace. consider using coalesce()' }
-
-class Unresolved extends Error {}
 
 const DURATION_UNITS = { ns: 1, us: 1e3, µs: 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9 }
 
@@ -281,20 +276,18 @@ const hops = (s, byId) => {
   return n
 }
 
-// guard throws Unresolved when a span of the given traces is at least
-// 2^rounds parent links from a root or a missing parent.
-const guard = (traceIds, ctx) => {
-  for (const s of ctx.spans) {
-    if (traceIds.has(s.traceId) && hops(s, ctx.byId) >= 2 ** ctx.rounds) throw new Unresolved()
-  }
-}
+// unresolved reports whether s is at least 2^rounds parent links from a root
+// or a missing parent, or below a parent cycle.
+const unresolved = (s, ctx) => hops(s, ctx.byId) >= 2 ** ctx.rounds
 
 const traceIds = (ss) => new Set(ss.map(s => s.traceId))
 
-// related lists the [l, r] pairs of one trace where rel(l, r) holds and both
-// spans reach a root.
-const related = (lhs, rhs, rel, ctx) => {
-  const ok = (s) => ctx.reach.has(`${s.traceId}/${s.spanId}`)
+// resolved reports whether s reaches a root within the round limit.
+const resolved = (s, ctx) => ctx.reach.has(`${s.traceId}/${s.spanId}`) && !unresolved(s, ctx)
+
+// related lists the [l, r] pairs of one trace where rel(l, r) holds and ok
+// holds for both spans.
+const related = (lhs, rhs, rel, ok) => {
   const pairs = []
   for (const r of rhs.filter(ok)) {
     for (const l of lhs.filter(ok)) {
@@ -322,18 +315,24 @@ const ONE_HOP = {
   '~': (l, r) => l.parentId === r.parentId && l.spanId !== r.spanId
 }
 
-// oneHop evaluates a one-hop operator. Traces with a root and a missing
-// parent resolve root reachability by pointer jumping, under the round limit.
+// oneHop evaluates a one-hop operator. A trace without a root relates nothing.
+// A trace with a root and no missing parent is never jumped, so all its spans
+// relate, cycles included; with a missing parent only resolved spans relate.
 const oneHop = (op, lhs, rhs, ctx) => {
-  const rt = traceIds(rhs)
-  const candidates = [...traceIds(lhs)].filter(id => rt.has(id))
-  const incomplete = candidates.filter(id => {
-    const ss = ctx.spans.filter(s => s.traceId === id)
-    return ss.some(s => s.parentId === null) && ss.some(s => s.parentId !== null && !ctx.byId.has(`${id}/${s.parentId}`))
-  })
-  guard(new Set(incomplete), ctx)
+  const trees = new Map()
+  const ok = (s) => {
+    if (!trees.has(s.traceId)) {
+      const ss = ctx.spans.filter(x => x.traceId === s.traceId)
+      trees.set(s.traceId, {
+        root: ss.some(x => x.parentId === null),
+        dangling: ss.some(x => x.parentId !== null && !ctx.byId.has(`${x.traceId}/${x.parentId}`))
+      })
+    }
+    const t = trees.get(s.traceId)
+    return t.root && (!t.dangling || resolved(s, ctx))
+  }
   const kind = op.length === 2 ? op[0] : ''
-  return result(kind, lhs, rhs, related(lhs, rhs, ONE_HOP[op[op.length - 1]], ctx))
+  return result(kind, lhs, rhs, related(lhs, rhs, ONE_HOP[op[op.length - 1]], ok))
 }
 
 // isAncestor reports whether a is a strict ancestor of s.
@@ -347,14 +346,18 @@ const isAncestor = (a, s, ctx) => {
 }
 
 // transitive evaluates `>>` (an ancestor of the RHS span matches the LHS) or
-// `<<` (a descendant does) and their `!` and `&` variants. Every span of the
-// traces where both sides yield spans must resolve under the round limit.
+// `<<` (a descendant does) and their `!` and `&` variants. Unresolved spans
+// relate to nothing. `<<`, `!<<`, `&>>` and `&<<` return no span from a trace
+// where both sides yield spans and any span is unresolved.
 const transitive = (op, lhs, rhs, ctx) => {
-  const rt = traceIds(rhs)
-  guard(new Set([...traceIds(lhs)].filter(id => rt.has(id))), ctx)
   const kind = op.length === 3 ? op[0] : ''
   const rel = op.endsWith('>>') ? (l, r) => isAncestor(l, r, ctx) : (l, r) => isAncestor(r, l, ctx)
-  return result(kind, lhs, rhs, related(lhs, rhs, rel, ctx))
+  const spans = result(kind, lhs, rhs, related(lhs, rhs, rel, s => resolved(s, ctx)))
+  if (op.endsWith('>>') && kind !== '&') return spans
+  const rt = traceIds(rhs)
+  const candidates = [...traceIds(lhs)].filter(id => rt.has(id))
+  const skipped = new Set(candidates.filter(id => ctx.spans.some(s => s.traceId === id && unresolved(s, ctx))))
+  return spans.filter(s => !skipped.has(s.traceId))
 }
 
 // spansetSpans returns the spans a spanset expression yields. `&&` keeps both
@@ -663,8 +666,7 @@ const newestFirst = (a, b) => b.start - a.start || (a.spanId < b.spanId ? 1 : a.
  * group key with its spans, attributes ([name, {type, value, text?}]) and
  * key. It returns GROUPED for a spanset operator over grouped spansets,
  * {error} for a by() that reads no attribute or a select() argument that is
- * neither an attribute nor an intrinsic, and UNRESOLVED when ancestry
- * does not resolve within the round limit. Operand spans start in (from, to];
+ * neither an attribute nor an intrinsic. Operand spans start in (from, to];
  * parents, ancestors, siblings and roots count wherever they start.
  * @param pipeline {Object[]} the pipeline of the case AST
  * @param all {Object[]} from dataset(); with opts.pushes only the spans of
@@ -681,7 +683,6 @@ const resultSpansets = (pipeline, all, { from, to, rounds = ROUNDS, pushes }) =>
     checkGroupBys(pipeline)
     return pipelineSpansets(pipeline, inRange, ctx)
   } catch (e) {
-    if (e instanceof Unresolved) return UNRESOLVED
     if (e instanceof Grouped) return GROUPED
     if (e instanceof Invalid) return { error: e.message }
     throw e
@@ -781,4 +782,4 @@ const search = (query, all, opts) => {
   })
 }
 
-module.exports = { DEFAULT_SPSS, ROUNDS, UNRESOLVED, GROUPED, SELECT_ERROR, SPAN_NAME, dataset, matches, resultSpans, search, durationNs, goDuration, needsWholeTrace }
+module.exports = { DEFAULT_SPSS, ROUNDS, GROUPED, SELECT_ERROR, SPAN_NAME, dataset, matches, resultSpans, search, durationNs, goDuration, needsWholeTrace }

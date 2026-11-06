@@ -9,10 +9,6 @@
 const { labelKey } = require('./metrics')
 const { SPAN_NAME } = require('./oracle')
 
-// UNRESOLVED_ERROR is the error of a search whose ancestry does not resolve
-// within the round limit.
-const UNRESOLVED_ERROR = /deeper than the round limit .*GIGAPIPE_TRACEQL_ANCESTRY_ROUNDS/
-
 // selectedOf returns a listed span's select() values: its attributes by key
 // and its name at SPAN_NAME.
 const selectedOf = (span) => {
@@ -116,17 +112,14 @@ const diff = (got, want) => {
   return out
 }
 
-// errorDiff diffs a result against an expected error, or returns null when
-// neither is an error. The unresolved-ancestry error matches by pattern, any
-// other by its text.
+// errorDiff diffs a result against an expected error by its text, or returns
+// null when neither is an error.
 const errorDiff = (got, want, size) => {
   if (!want.error && !got.error) return null
   if (!want.error) return [`unexpected error ${got.status}: ${got.error}`]
-  const unresolved = want.error === 'unresolved ancestry'
-  const what = unresolved ? 'an unresolved-ancestry error' : `the error "${want.error}"`
+  const what = `the error "${want.error}"`
   if (!got.error) return [`want ${what}, got ${size(got)}`]
-  const ok = unresolved ? UNRESOLVED_ERROR.test(got.error) : got.error.includes(want.error)
-  return ok ? [] : [`error ${got.status}: ${got.error}, want ${what}`]
+  return got.error.includes(want.error) ? [] : [`error ${got.status}: ${got.error}, want ${what}`]
 }
 
 // labelsOf flattens a metrics label list to {key: value}.
