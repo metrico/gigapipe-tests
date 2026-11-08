@@ -14,9 +14,13 @@ const CYCLES = -80 * MINUTE
 // Attributes on every seeded span.
 const SUITE = { suite: 'traceql-grid' }
 
+// SLOTS keeps the oldest fixtures two UTC days inside the attribute indexes'
+// date + 7 days TTL at any hour.
+const SLOTS = 35
+
 // window returns the query window for a run: FROM sits in one of `slots`
-// two-hour slots between 1 and 6 days back, so reruns on one stack rarely meet.
-const window = (nowMs, slot, slots = 60) => {
+// two-hour slots between 1 and 4 days back, so reruns on one stack rarely meet.
+const window = (nowMs, slot, slots = SLOTS) => {
   if (slot < 0 || slot >= slots) throw new Error(`slot ${slot} out of [0, ${slots})`)
   const base = Math.floor((nowMs - 26 * HOUR) / HOUR) * HOUR
   const from = base - slot * 2 * HOUR
@@ -232,4 +236,4 @@ const zipkinBatches = (from, prefix, testId, ts = traces()) => {
   return batches
 }
 
-module.exports = { SECOND, MINUTE, HOUR, WINDOW, SUITE, window, traces, ids, zipkinBatches }
+module.exports = { SECOND, MINUTE, HOUR, WINDOW, SUITE, SLOTS, window, traces, ids, zipkinBatches }

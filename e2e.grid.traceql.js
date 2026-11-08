@@ -15,7 +15,7 @@ const client = require('./grid/traceql/client')
 
 const TEST_ID = `${testID}_grid_traceql`
 const PREFIX = ('7ace' + BigInt(testID.substring(2)).toString(16)).padEnd(24, '0').substring(0, 24)
-const SLOT = Number(BigInt(testID.substring(2)) % 60n)
+const SLOT = Number(BigInt(testID.substring(2)) % BigInt(seed.SLOTS))
 const { from: FROM } = seed.window(Date.now(), SLOT)
 const SPANS = oracle.dataset(FROM, PREFIX, TEST_ID)
 const NAMES = names(seed.ids(PREFIX))
