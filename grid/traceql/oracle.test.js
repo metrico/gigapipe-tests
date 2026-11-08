@@ -109,7 +109,28 @@ describe('traceql grid seed', () => {
     const now = Date.UTC(2026, 9, 12, 18, 52, 13)
     expect(seed.window(now, 0)).toEqual({ from: Date.UTC(2026, 9, 11, 16), to: Date.UTC(2026, 9, 11, 16, 30) })
     expect(seed.window(now, 3).from).toEqual(Date.UTC(2026, 9, 11, 10))
-    expect(() => seed.window(now, 60)).toThrow()
+    expect(() => seed.window(now, seed.SLOTS)).toThrow()
+  })
+
+  // Attribute index rows dated D expire at D + 7 days; the oldest seeded span
+  // keeps two spare UTC days, so its date is at least today - 4.
+  it('keeps every slot inside the attribute indexes\' TTL at any hour', () => {
+    const DAY = 24 * seed.HOUR
+    const earliest = Math.min(...seed.traces().flatMap(t => t.spans.map(s => s.start)))
+    const today = Date.UTC(2026, 10, 8)
+    const nows = [Date.UTC(2026, 10, 8, 0, 46)]
+    for (let h = 0; h < 24; h++) nows.push(today + h * seed.HOUR, today + (h + 1) * seed.HOUR - 1)
+    expect(seed.SLOTS).toBeGreaterThan(1)
+    const late = []
+    for (const now of nows) {
+      for (let slot = 0; slot < seed.SLOTS; slot++) {
+        const { from, to } = seed.window(now, slot)
+        const day = Math.floor((from + earliest) / DAY) * DAY
+        if (day < today - 4 * DAY) late.push({ now: new Date(now).toISOString(), slot })
+        expect(to).toBeLessThanOrEqual(now - DAY)
+      }
+    }
+    expect(late).toEqual([])
   })
 })
 
