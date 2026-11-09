@@ -33,6 +33,7 @@ require('./e2e.otlp.pprof')
 require('./e2e.otlp')
 require('./e2e.grid.prom')
 require('./e2e.grid.logql')
+require('./e2e.grid.traceql')
 
 const checkAlertConfig = async () => {
   try {
