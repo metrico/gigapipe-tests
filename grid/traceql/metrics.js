@@ -13,9 +13,11 @@ const INTRINSIC_LABELS = {
   rootServiceName: s => s.attrs['service.name']
 }
 
-// byValue is a span's value of a by-label, '' when it has none.
+// byValue is a span's value of a by-label, '' when it has none; a nested-set
+// value is an int, `int <n>`.
 const byValue = (s, label) => {
   if (INTRINSIC_LABELS[label]) return INTRINSIC_LABELS[label](s)
+  if (oracle.NESTED_SET[label]) return `int ${s.ns[oracle.NESTED_SET[label]]}`
   const key = label.replace(/^(span|resource)\./, '')
   return s.attrs[key] === undefined ? '' : s.attrs[key]
 }
@@ -37,10 +39,12 @@ const quantile = (xs, q) => {
 const histogramBucket = (s) => s.durationNs > 0 ? 2 ** Math.ceil(Math.log2(s.durationNs)) : 0
 
 // aggregate applies the metrics function m to spans; window is the bucket
-// width in seconds.
+// width in seconds. Its argument is the duration in seconds or a nested-set
+// value.
 const aggregate = (m, spans, window) => {
   const fn = m.fn
   const durs = () => {
+    if (oracle.NESTED_SET[m.attr]) return spans.map(s => s.ns[oracle.NESTED_SET[m.attr]])
     if (m.attr !== 'duration') throw new Error(`oracle: ${fn} over ${m.attr}`)
     return spans.map(seconds)
   }
@@ -105,6 +109,18 @@ const sampleFraction = (hints) => {
  */
 const exemplarLimit = (hints) => hint(hints, 'exemplars', v => v === 'false' ? 0 : /^\d+$/.test(v) ? Number(v) : null)
 
+// Metrics functions whose results measure volume.
+const VOLUMES = new Set(['count_over_time', 'rate', 'sum_over_time', 'histogram_over_time', 'compare'])
+
+/**
+ * sampleScale is what a sampled result of m multiplies by: 1/fraction for a
+ * volume, 1 for a value read off the spans (avg, min, max, quantiles) or
+ * without a sample.
+ * @param m {Object} the metrics node of the case AST
+ * @param fraction {number|null} from sampleFraction()
+ */
+const sampleScale = (m, fraction) => fraction !== null && VOLUMES.has(m.fn) ? 1 / fraction : 1
+
 /**
  * sample keeps the result spans in the hash sample of fraction: by trace id
  * when the pipeline relates spans across a trace, else by span id.
@@ -133,8 +149,9 @@ const thin = (items, limit) => limit === null || items.length <= limit
  * @param found {Object[]} the result spans
  * @param step {number} ms
  * @param limit {number|null} the exemplar cap per series
+ * @param scale {number} from sampleScale()
  */
-const range = (m, found, step, limit = null) => {
+const range = (m, found, step, limit = null, scale = 1) => {
   const series = new Map()
   for (const s of found) {
     const group = groupOf(m, s)
@@ -147,7 +164,7 @@ const range = (m, found, step, limit = null) => {
   return [...series.values()].map(({ labels, buckets }) => {
     const samples = {}
     for (const [ts, spans] of Object.entries(buckets)) {
-      const v = aggregate(m, spans, step / 1000)
+      const v = aggregate(m, spans, step / 1000) * scale
       if (v !== 0) samples[ts] = v
     }
     const exemplarBuckets = thin(Object.keys(buckets).map(Number).sort((a, b) => a - b), limit)
@@ -156,7 +173,7 @@ const range = (m, found, step, limit = null) => {
 }
 
 // instant returns the expected series of an instant query: [{labels, value}].
-const instant = (m, found, from, to) => {
+const instant = (m, found, from, to, scale = 1) => {
   const groups = new Map()
   for (const s of found) {
     const labels = groupOf(m, s)
@@ -164,16 +181,16 @@ const instant = (m, found, from, to) => {
     if (!groups.has(key)) groups.set(key, { labels, spans: [] })
     groups.get(key).spans.push(s)
   }
-  return [...groups.values()].map(({ labels, spans }) => ({ labels, value: aggregate(m, spans, (to - from) / 1000) }))
+  return [...groups.values()].map(({ labels, spans }) => ({ labels, value: aggregate(m, spans, (to - from) / 1000) * scale }))
 }
 
 /**
  * compare returns the expected compare() series, [{labels, value}]: per
  * attribute value of the baseline spans, the count of those in the selection
- * and of the rest, each when non-zero; the top `count` values per key by
- * total.
+ * and of the rest, each when non-zero and multiplied by scale; the top `count`
+ * values per key by total.
  */
-const compare = (m, baseline, from, to) => {
+const compare = (m, baseline, from, to, scale = 1) => {
   const filter = m.compare.filter
   const selected = (s) => s.start > from && s.start <= to && (filter === null || oracle.matches(s, filter))
   const counts = new Map()
@@ -196,7 +213,7 @@ const compare = (m, baseline, from, to) => {
     }
     for (const [v, c] of ranked.slice(0, top)) {
       for (const type of ['selection', 'baseline']) {
-        if (c[type] > 0) out.push({ labels: { __meta_type: type, [k]: v }, value: c[type] })
+        if (c[type] > 0) out.push({ labels: { __meta_type: type, [k]: v }, value: c[type] * scale })
       }
     }
   }
@@ -206,7 +223,8 @@ const compare = (m, baseline, from, to) => {
 /**
  * metrics returns the expected result of a metrics case: range series, or
  * instant series, or compare series; or the error result of
- * oracle.resultSpans(). The query's sample and exemplars hints apply.
+ * oracle.resultSpans(). The query's sample and exemplars hints apply; a sampled
+ * result scales by sampleScale().
  * @param query {Object} the case AST, with metrics
  * @param all {Object[]} from oracle.dataset()
  * @param opts {{from: number, to: number, step: number, instant?: boolean, rounds?: number, pushes?: number}}
@@ -217,9 +235,10 @@ const metrics = (query, all, opts) => {
   if (found.error) return found
   const fraction = sampleFraction(query.hints)
   if (fraction !== null) found = sample(query.pipeline, found, fraction)
-  if (m.fn === 'compare') return compare(m, found, opts.from, opts.to)
-  if (opts.instant) return m.fn === 'histogram_over_time' ? [] : instant(m, found, opts.from, opts.to)
-  return range(m, found, opts.step, exemplarLimit(query.hints))
+  const scale = sampleScale(m, fraction)
+  if (m.fn === 'compare') return compare(m, found, opts.from, opts.to, scale)
+  if (opts.instant) return m.fn === 'histogram_over_time' ? [] : instant(m, found, opts.from, opts.to, scale)
+  return range(m, found, opts.step, exemplarLimit(query.hints), scale)
 }
 
-module.exports = { metrics, labelKey, histogramBucket, sampleFraction, exemplarLimit, thin }
+module.exports = { metrics, labelKey, histogramBucket, sampleFraction, sampleScale, exemplarLimit, thin }
