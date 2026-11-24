@@ -71,6 +71,38 @@ const waitForSeries = async (api, selector, startMs, endMs, want, timeoutMs = 60
   return got
 }
 
+// sampleCount returns how many samples selectors have in [startMs, endMs].
+const sampleCount = async (api, selectors, startMs, endMs) => {
+  const path = api === 'prom' ? '/api/v1/query' : '/loki/api/v1/query'
+  // The window is open at its start, so it begins a second earlier.
+  const window = `${(endMs - startMs) / 1000 + 1}s`
+  let count = 0
+  for (const selector of selectors) {
+    const qs = new URLSearchParams({
+      query: `sum(count_over_time(${selector}[${window}]))`,
+      time: api === 'prom' ? secs(endMs) : ns(endMs)
+    })
+    const resp = await axiosGet(`http://${clokiExtUrl}${path}?${qs}`)
+    const [res] = resp.data.data.result
+    count += res ? Number(res.value[1]) : 0
+  }
+  return count
+}
+
+// waitForSamples polls until want samples are readable. Labels and samples are
+// separate tables: on a cluster, a series can be listed before its samples have
+// reached every shard.
+const waitForSamples = async (api, selectors, startMs, endMs, want, timeoutMs = 60000) => {
+  const deadline = Date.now() + timeoutMs
+  let got = 0
+  while (Date.now() < deadline) {
+    got = await sampleCount(api, selectors, startMs, endMs)
+    if (got >= want) return got
+    await new Promise(resolve => setTimeout(resolve, 1000))
+  }
+  return got
+}
+
 // queryProm runs a grid run against the Prometheus API.
 const queryProm = async (run) => {
   const qs = new URLSearchParams({ query: run.query })
@@ -97,4 +129,4 @@ const queryLogql = async (run) => {
   return fromApi(resp.data)
 }
 
-module.exports = { pushProm, pushLogs, seriesCount, waitForSeries, queryProm, queryLogql }
+module.exports = { pushProm, pushLogs, seriesCount, waitForSeries, sampleCount, waitForSamples, queryProm, queryLogql }

@@ -35,6 +35,10 @@ _it(SEEDED, async () => {
   const end = D0 + seed.LOGQL.spanMinutes * seed.MINUTE
   const got = await client.waitForSeries('logql', `{test_id="${TEST_ID}"}`, D0, end, STREAMS.length)
   expect(got).toEqual(STREAMS.length)
+  const lines = STREAMS.reduce((n, s) => n + s.entries.length, 0)
+  // The last minute's lines run a few seconds past the end.
+  const until = end + seed.MINUTE
+  expect(await client.waitForSamples('logql', [`{test_id="${TEST_ID}"}`], D0, until, lines)).toEqual(lines)
 })
 
 for (const run of logqlRuns(D0, TEST_ID).filter(r => ENABLED.has(`${r.id}/${r.path}`))) {

@@ -34,6 +34,11 @@ _it(SEEDED, async () => {
   await client.pushProm(SERIES)
   const got = await client.waitForSeries('prom', `{test_id="${TEST_ID}"}`, D0, D0 + seed.PROM.span, SERIES.length)
   expect(got).toEqual(SERIES.length)
+  const samples = SERIES.reduce((n, s) => n + s.samples.length, 0)
+  // One selector per metric: count_over_time drops the name, so the series of
+  // two metrics would have the same labels.
+  const selectors = [...new Set(SERIES.map(s => `${s.labels.__name__}{test_id="${TEST_ID}"}`))]
+  expect(await client.waitForSamples('prom', selectors, D0, D0 + seed.PROM.span, samples)).toEqual(samples)
 })
 
 for (const run of promRuns(D0, TEST_ID).filter(r => ENABLED.has(r.id))) {
