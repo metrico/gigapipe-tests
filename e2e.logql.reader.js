@@ -141,6 +141,44 @@ _it('should hammer aggregation', async () => {
     }
 }, ['push logs http'])
 
+// bytes_over_time is the total bytes in the range, bytes_rate that total per
+// second. The range must be wider than 1s, or dividing by it changes nothing.
+_it('bytes_over_time equals bytes_rate times the range', async () => {
+    const sel = `{test_id="${testID}", freq="2"}`
+    const [overTime, rate] = await Promise.all([
+        runRequest(`bytes_over_time(${sel}[1m])`, 60),
+        runRequest(`bytes_rate(${sel}[1m])`, 60)
+    ])
+
+    const overTimeSeries = overTime.data.data.result
+    const rateSeries = rate.data.data.result
+
+    // Control: both must have data, otherwise the comparison below would
+    // pass on two empty results.
+    expect(overTimeSeries.length).toEqual(1)
+    expect(rateSeries.length).toEqual(1)
+    expect(overTimeSeries[0].values.length).toBeTruthy()
+
+    const values = overTimeSeries[0].values
+    expect(values.map(v => v[0])).toEqual(rateSeries[0].values.map(v => v[0]))
+    values.forEach(([, v], i) =>
+        expect(parseFloat(v)).toBeCloseTo(parseFloat(rateSeries[0].values[i][1]) * 60, 5))
+}, ['push logs http'])
+
+// Summed over steps as wide as the range, bytes_over_time counts every pushed
+// line exactly once, so the total is the byte length of all lines.
+_it('bytes_over_time totals the bytes of every line', async () => {
+    const pushed = Object.values(createPoints(testID, 2, start, end, {}, {}))[0].values
+    const expected = pushed.reduce((acc, [, line]) => acc + Buffer.byteLength(line), 0)
+
+    const resp = await runRequest(`sum(bytes_over_time({test_id="${testID}", freq="2"}[1m]))`, 60)
+    const series = resp.data.data.result
+    expect(series.length).toEqual(1)
+
+    const total = series[0].values.reduce((acc, [, v]) => acc + parseFloat(v), 0)
+    expect(total).toBeCloseTo(expected, 5)
+}, ['push logs http'])
+
 _itShouldMatrixReq('aggregation operator',
     `sum by (test_id) (rate({test_id="${testID}"} |~ "2[0-9]$" [1s]))`)
 
